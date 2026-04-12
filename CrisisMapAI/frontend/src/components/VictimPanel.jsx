@@ -85,10 +85,11 @@ const VictimPanel = () => {
   const volunteers = algorithm_results?.gale_shapley || []
   const msgs = algorithm_results?.messages || {}
 
-  const rawStatus = incident.status || 'received'
+  const rawStatus = incident.status || hungarian.status || 'received'
   let displayStatus = 'Request Received'
   if (rawStatus === 'processed') displayStatus = 'Help Assigned'
   else if (rawStatus === 'queued') displayStatus = 'Waiting for Assignment'
+  else if (rawStatus === 'blocked_access') displayStatus = 'Access Blocked'
   else if (rawStatus) {
     displayStatus = rawStatus.charAt(0).toUpperCase() + rawStatus.slice(1)
   }
@@ -116,12 +117,24 @@ const VictimPanel = () => {
   }
 
   const isHelpAssigned = !!incident.responder
-  const responderText = isHelpAssigned ? `Responder Assigned: ${incident.responder}` : 'Searching for nearest available responder...'
+  const responderText = isHelpAssigned
+    ? `Responder Assigned: ${incident.responder}`
+    : hungarian.assigned === false
+      ? (hungarian.reason || 'No responder could be safely assigned yet.')
+      : 'Searching for nearest available responder...'
   
-  const etaText = incident.eta ? `Estimated Arrival: ${incident.eta}` : 'Estimating arrival time...'
+  const etaText = incident.eta
+    ? `Estimated Arrival: ${incident.eta}`
+    : hungarian.assigned === false
+      ? 'No safe arrival estimate available right now.'
+      : 'Estimating arrival time...'
 
   const destinationName = dijkstra.destination?.name 
-  const displayDestName = destinationName ? destinationName : 'Determining safest destination...'
+  const displayDestName = destinationName
+    ? destinationName
+    : hungarian.destination?.name
+      ? hungarian.destination.name
+      : 'Determining safest destination...'
   
   const excludedEdges = dijkstra.excluded_edges || []
   const hasAlternateRoute = excludedEdges.length > 0
@@ -129,6 +142,7 @@ const VictimPanel = () => {
   const rawMessage =
     incident.message ||
     msgs.victim_confirmation ||
+    hungarian.reason ||
     'Your SOS has been received and verified.\nEmergency teams are identifying the fastest safe route to reach you.\nStay calm, keep your phone nearby, and move only if it is safe to do so.'
   const instructionsList = rawMessage
     .split(/\n|\.\s+/)
