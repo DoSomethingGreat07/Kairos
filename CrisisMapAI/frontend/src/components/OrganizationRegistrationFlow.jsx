@@ -65,7 +65,7 @@ const initialState = {
     operating_hours: {},
   },
   equipment_inventory: {
-    vehicles: [createEmptyVehicle()],
+    vehicles: [],
     oxygen_cylinders: 0,
     first_aid_kits: 0,
     stretchers: 0,
@@ -332,7 +332,7 @@ const OrganizationRegistrationFlow = ({ onBackToRoles }) => {
             <label><span className="text-sm font-semibold text-slate-700">Official registration number <span className="badge badge-critical">Required</span></span><input className="input-shell" value={formState.identity.registration_number} onChange={(e) => updateNested('identity', 'registration_number', e.target.value)} /></label>
             <label><span className="text-sm font-semibold text-slate-700">Primary contact person name <span className="badge badge-critical">Required</span></span><input className="input-shell" value={formState.identity.primary_contact_name} onChange={(e) => updateNested('identity', 'primary_contact_name', e.target.value)} /></label>
             <label><span className="text-sm font-semibold text-slate-700">Primary contact phone <span className="badge badge-critical">Required</span></span><input className="input-shell" value={formState.identity.primary_contact_phone} onChange={(e) => updateNested('identity', 'primary_contact_phone', e.target.value)} /></label>
-            <label><span className="text-sm font-semibold text-slate-700">Primary contact email <span className="badge badge-critical">Required</span></span><input className="input-shell" type="email" value={formState.identity.primary_contact_email} onChange={(e) => updateNested('identity', 'primary_contact_email', e.target.value)} /></label>
+            <label><span className="text-sm font-semibold text-slate-700">Primary contact email</span><input className="input-shell" type="email" value={formState.identity.primary_contact_email} onChange={(e) => updateNested('identity', 'primary_contact_email', e.target.value)} placeholder="Optional email for updates" /></label>
             <label><span className="text-sm font-semibold text-slate-700">Organization logo URL (optional)</span><input className="input-shell" value={formState.identity.logo_url} onChange={(e) => updateNested('identity', 'logo_url', e.target.value)} placeholder="Optional image URL" /></label>
           </div>
         )}
@@ -373,11 +373,11 @@ const OrganizationRegistrationFlow = ({ onBackToRoles }) => {
                     </div>
                     <div className="grid gap-4 md:grid-cols-2">
                       <label><span className="text-sm font-semibold text-slate-700">Vehicle type</span><select className="input-shell" value={vehicle.vehicle_type} onChange={(e) => updateVehicle(index, 'vehicle_type', e.target.value)}>{vehicleTypes.map((type) => <option key={type}>{type}</option>)}</select></label>
-                      <label><span className="text-sm font-semibold text-slate-700">Vehicle ID or plate number <span className="badge badge-critical">Required</span></span><input className="input-shell" value={vehicle.vehicle_identifier} onChange={(e) => updateVehicle(index, 'vehicle_identifier', e.target.value)} /></label>
+                      <label><span className="text-sm font-semibold text-slate-700">Vehicle ID or plate number</span><input className="input-shell" value={vehicle.vehicle_identifier} onChange={(e) => updateVehicle(index, 'vehicle_identifier', e.target.value)} /></label>
                       <label><span className="text-sm font-semibold text-slate-700">Passenger capacity</span><input className="input-shell" type="number" min="0" value={vehicle.passenger_capacity} onChange={(e) => updateVehicle(index, 'passenger_capacity', Number(e.target.value))} /></label>
                       <label><span className="text-sm font-semibold text-slate-700">Fuel type</span><select className="input-shell" value={vehicle.fuel_type} onChange={(e) => updateVehicle(index, 'fuel_type', e.target.value)}>{fuelTypes.map((type) => <option key={type}>{type}</option>)}</select></label>
                       <label><span className="text-sm font-semibold text-slate-700">Operational range (km)</span><input className="input-shell" type="number" min="0" value={vehicle.operational_range_km} onChange={(e) => updateVehicle(index, 'operational_range_km', Number(e.target.value))} /></label>
-                      <label><span className="text-sm font-semibold text-slate-700">Assigned home zone <span className="badge badge-critical">Required</span></span><select className="input-shell" value={vehicle.home_zone} onChange={(e) => updateVehicle(index, 'home_zone', e.target.value)}><option value="">Select zone</option>{zones.map((zone) => <option key={zone.id} value={zone.id}>{zone.name}</option>)}</select></label>
+                      <label><span className="text-sm font-semibold text-slate-700">Assigned home zone</span><select className="input-shell" value={vehicle.home_zone} onChange={(e) => updateVehicle(index, 'home_zone', e.target.value)}><option value="">Select zone</option>{zones.map((zone) => <option key={zone.id} value={zone.id}>{zone.name}</option>)}</select></label>
                     </div>
                     <label className="mt-4 flex items-center gap-3 text-sm font-medium text-slate-700"><input type="checkbox" checked={vehicle.currently_operational} onChange={(e) => updateVehicle(index, 'currently_operational', e.target.checked)} />Currently operational</label>
                     <div className="mt-4 flex flex-wrap gap-2">
@@ -522,12 +522,12 @@ const OrganizationRegistrationFlow = ({ onBackToRoles }) => {
         {formState.currentStep === 5 && (
           <div className="space-y-5">
             <label>
-              <span className="text-sm font-semibold text-slate-700">Proof of registration document URL <span className="badge badge-critical">Required</span></span>
-              <input className="input-shell" value={formState.authorization.proof_of_registration_url} onChange={(e) => updateNested('authorization', 'proof_of_registration_url', e.target.value)} placeholder="Required PDF or image URL" />
+              <span className="text-sm font-semibold text-slate-700">Proof of registration document URL</span>
+              <input className="input-shell" value={formState.authorization.proof_of_registration_url} onChange={(e) => updateNested('authorization', 'proof_of_registration_url', e.target.value)} placeholder="Optional PDF or image URL" />
             </label>
             <div className="grid gap-4 md:grid-cols-2">
               <label><span className="text-sm font-semibold text-slate-700">Authorized signatory full name <span className="badge badge-critical">Required</span></span><input className="input-shell" value={formState.authorization.authorized_signatory_name} onChange={(e) => updateNested('authorization', 'authorized_signatory_name', e.target.value)} /></label>
-              <label><span className="text-sm font-semibold text-slate-700">Authorized signatory designation or title <span className="badge badge-critical">Required</span></span><input className="input-shell" value={formState.authorization.authorized_signatory_title} onChange={(e) => updateNested('authorization', 'authorized_signatory_title', e.target.value)} /></label>
+              <label><span className="text-sm font-semibold text-slate-700">Authorized signatory designation or title</span><input className="input-shell" value={formState.authorization.authorized_signatory_title} onChange={(e) => updateNested('authorization', 'authorized_signatory_title', e.target.value)} /></label>
             </div>
             <label>
               <span className="text-sm font-semibold text-slate-700">Create password <span className="badge badge-critical">Required</span></span>
@@ -558,13 +558,21 @@ const buildDraftData = (state) => ({
 const validateOrganizationStep = (state) => {
   if (state.currentStep === 1) {
     const identity = state.identity
-    return Boolean(identity.organization_name && identity.organization_type && identity.registration_number && identity.primary_contact_name && identity.primary_contact_phone && identity.primary_contact_email)
+    return Boolean(identity.organization_name && identity.organization_type && identity.registration_number && identity.primary_contact_name && identity.primary_contact_phone)
   }
   if (state.currentStep === 2) {
     return Boolean(state.coverage.headquarters_zone && state.coverage.coverage_zones.length > 0)
   }
   if (state.currentStep === 3) {
-    const allVehiclesValid = state.equipment_inventory.vehicles.every((vehicle) => vehicle.vehicle_identifier && vehicle.home_zone)
+    const allVehiclesValid = state.equipment_inventory.vehicles.every((vehicle) => {
+      const hasAnyVehicleData = Boolean(
+        vehicle.vehicle_identifier
+        || vehicle.home_zone
+        || (vehicle.equipment && vehicle.equipment.length > 0)
+      )
+      if (!hasAnyVehicleData) return true
+      return Boolean(vehicle.vehicle_identifier || vehicle.home_zone)
+    })
     const sheltersValid = !state.equipment_inventory.operates_shelters || state.equipment_inventory.shelters.every((shelter) => shelter.shelter_name && shelter.address && shelter.zone)
     return allVehiclesValid && sheltersValid
   }
@@ -572,9 +580,7 @@ const validateOrganizationStep = (state) => {
     return Boolean(state.organization_code)
   }
   return Boolean(
-    state.authorization.proof_of_registration_url
-    && state.authorization.authorized_signatory_name
-    && state.authorization.authorized_signatory_title
+    state.authorization.authorized_signatory_name
     && (state.authorization.password || '').length >= 8
     && state.authorization.agree_data_sharing
     && state.authorization.agree_operational_guidelines

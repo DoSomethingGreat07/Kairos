@@ -598,9 +598,13 @@ const SOSForm = () => {
             </button>
 
             {message && (
-              <div className="mt-4 rounded-2xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm font-medium text-emerald-800">
-                {message}
-                {submittedSosId && <div className="mt-2">Track status in the <Link className="font-bold underline" to={`/victim/${submittedSosId}`}>victim view</Link>.</div>}
+              <div className="mt-4 rounded-2xl border border-emerald-200 bg-emerald-50 px-4 py-4 text-sm font-medium text-emerald-800 flex flex-col gap-3">
+                <p>{message}</p>
+                {submittedSosId && (
+                  <Link to={`/victim/${submittedSosId}`} className="button-primary text-center bg-emerald-600 hover:bg-emerald-700 text-white w-full rounded-[16px] py-3 text-sm font-bold uppercase tracking-wide">
+                    View Live Rescue Status
+                  </Link>
+                )}
               </div>
             )}
 

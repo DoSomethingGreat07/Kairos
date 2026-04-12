@@ -10,13 +10,13 @@ export const apiClient = axios.create({
   },
 })
 
-const normalizeIncident = (incident = {}) => ({
+export const normalizeIncident = (incident = {}) => ({
   ...incident,
   severity: incident.severity || incident.inferred_severity || 'medium',
   status: incident.status || 'received',
   people_count: incident.people_count ?? 1,
   note: incident.note || incident.notes || '',
-  responder: incident.responder || incident.assignment?.responder || null,
+  responder: typeof incident.responder === 'object' ? incident.responder?.name : (incident.responder || incident.assigned_responder?.name || incident.assignment?.responder_name || incident.assignment?.responder?.name || null),
 })
 
 export const submitSOS = async (sosData) => {
@@ -41,6 +41,11 @@ export const getDashboardData = async () => {
 export const getIncidentDetails = async (sosId) => {
   const response = await apiClient.get(`/api/incidents/${sosId}`)
   return normalizeIncident(response.data || {})
+}
+
+export const getVictimIncidents = async (victimId) => {
+  const response = await apiClient.get(`/api/victims/${victimId}/incidents`)
+  return (response.data || []).map(normalizeIncident)
 }
 
 export const getRegistrationZones = async () => {

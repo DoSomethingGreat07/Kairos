@@ -1,20 +1,30 @@
 import React, { useEffect, useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
-import { getDashboardData, getProfile } from '../api/client'
+import { getDashboardData, getProfile, getVictimIncidents } from '../api/client'
 
 const RoleWorkspace = ({ session }) => {
   const [profile, setProfile] = useState(null)
   const [dashboard, setDashboard] = useState(null)
+  const [victimIncidents, setVictimIncidents] = useState([])
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
     const load = async () => {
       try {
         const requests = [getProfile(session.role, session.subject_id)]
+        if (session.role === 'victim') requests.push(getVictimIncidents(session.subject_id))
         if (session.role === 'organization') requests.push(getDashboardData())
-        const [profileResult, dashboardResult] = await Promise.all(requests)
+        const results = await Promise.all(requests)
+        const profileResult = results[0]
         setProfile(profileResult)
-        setDashboard(dashboardResult || null)
+        if (session.role === 'victim') {
+          setVictimIncidents(results[1] || [])
+          setDashboard(null)
+        } else if (session.role === 'organization') {
+          setDashboard(results[1] || null)
+        } else {
+          setDashboard(null)
+        }
       } catch (error) {
         console.error('Workspace load failed:', error)
       } finally {
@@ -152,6 +162,53 @@ const RoleWorkspace = ({ session }) => {
           </div>
         ))}
       </section>
+
+      {session.role === 'victim' && (
+        <section className="workspace-info-block">
+          <div className="flex items-center justify-between gap-4">
+            <div>
+              <h2 className="workspace-section-title">Your SOS requests</h2>
+              <p className="mt-2 text-sm text-slate-500">
+                Every submitted SOS is stored with its live status, responder assignment, and algorithm outputs so you can reopen and track it any time.
+              </p>
+            </div>
+            <Link to="/sos" className="button-danger">Submit New SOS</Link>
+          </div>
+
+          {victimIncidents.length > 0 ? (
+            <div className="workspace-summary-grid mt-6">
+              {victimIncidents.map((incident) => (
+                <div key={incident.sos_id || incident.id} className="workspace-summary-card">
+                  <p className="metric-label">{incident.disaster_type || 'Emergency request'}</p>
+                  <p className="mt-3 text-xl font-black tracking-tight text-slate-950">
+                    {incident.zone || 'Location pending'}
+                  </p>
+                  <p className="mt-2 text-sm text-slate-500">
+                    Status: <span className="font-semibold text-slate-700">{incident.status || 'received'}</span>
+                  </p>
+                  <p className="mt-1 text-sm text-slate-500">
+                    ETA: <span className="font-semibold text-slate-700">{incident.eta || 'Pending'}</span>
+                  </p>
+                  <div className="mt-4 flex items-center justify-between gap-3">
+                    <span className="text-xs font-medium uppercase tracking-[0.18em] text-slate-400">
+                      SOS #{incident.sos_id || incident.id}
+                    </span>
+                    <Link to={`/victim/${incident.sos_id || incident.id}`} className="button-soft">
+                      Track request
+                    </Link>
+                  </div>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <div className="workspace-note-card mt-6">
+              <p className="text-sm leading-7 text-slate-600">
+                No SOS requests have been submitted from this victim profile yet.
+              </p>
+            </div>
+          )}
+        </section>
+      )}
     </div>
   )
 }

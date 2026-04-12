@@ -481,11 +481,11 @@ const ResponderRegistrationFlow = ({ onBackToRoles }) => {
                 <Field label="Branch / Station Name" required error={showError(validationRequested, currentErrors.branch_name)}>
                   <input className="input-shell" value={formState.organization.branch_name} onChange={(e) => updateSection('organization', 'branch_name', e.target.value)} />
                 </Field>
-                <Field label="Branch / Station ID" required error={showError(validationRequested, currentErrors.branch_id)}>
+                <Field label="Branch / Station ID" error={showError(validationRequested, currentErrors.branch_id)}>
                   <input className="input-shell" value={formState.organization.branch_id} onChange={(e) => updateSection('organization', 'branch_id', e.target.value)} />
                 </Field>
-                <Field label="Official Work Email" required error={showError(validationRequested, currentErrors.official_email)}>
-                  <input className="input-shell" type="email" value={formState.organization.official_email} onChange={(e) => updateSection('organization', 'official_email', e.target.value)} placeholder="responder@agency.org" />
+                <Field label="Official Work Email" error={showError(validationRequested, currentErrors.official_email)}>
+                  <input className="input-shell" type="email" value={formState.organization.official_email} onChange={(e) => updateSection('organization', 'official_email', e.target.value)} placeholder="Optional work email" />
                 </Field>
                 <Field label="Organization Contact Number" required error={showError(validationRequested, currentErrors.organization_contact_number)}>
                   <input className="input-shell" value={formState.organization.contact_number} onChange={(e) => updateSection('organization', 'contact_number', e.target.value)} placeholder="+1 555 123 9999" />
@@ -498,7 +498,7 @@ const ResponderRegistrationFlow = ({ onBackToRoles }) => {
                 <Field className="md:col-span-2" label="Full Name" required error={showError(validationRequested, currentErrors.full_name)}>
                   <input className="input-shell" value={formState.personal.full_name} onChange={(e) => updateSection('personal', 'full_name', e.target.value)} />
                 </Field>
-                <Field label={derivedFlags.isVolunteer ? 'Responder ID / Employee ID (optional for volunteers)' : 'Responder ID / Employee ID'} required={!derivedFlags.isVolunteer} error={showError(validationRequested, currentErrors.responder_id)}>
+                <Field label="Responder ID / Employee ID" error={showError(validationRequested, currentErrors.responder_id)}>
                   <input className="input-shell" value={formState.personal.responder_id} onChange={(e) => updateSection('personal', 'responder_id', e.target.value)} />
                 </Field>
                 <Field label="Date of Birth" required error={showError(validationRequested, currentErrors.date_of_birth)}>
@@ -518,8 +518,8 @@ const ResponderRegistrationFlow = ({ onBackToRoles }) => {
                 <Field label="Government ID Number" required error={showError(validationRequested, currentErrors.government_id_number)}>
                   <input className="input-shell" value={formState.personal.government_id_number} onChange={(e) => updateSection('personal', 'government_id_number', e.target.value)} />
                 </Field>
-                <Field label="Profile Photo Upload URL" required error={showError(validationRequested, currentErrors.profile_photo_url)}>
-                  <input className="input-shell" value={formState.personal.profile_photo_url} onChange={(e) => updateSection('personal', 'profile_photo_url', e.target.value)} placeholder="Secure asset URL or object key" />
+                <Field label="Profile Photo Upload URL" error={showError(validationRequested, currentErrors.profile_photo_url)}>
+                  <input className="input-shell" value={formState.personal.profile_photo_url} onChange={(e) => updateSection('personal', 'profile_photo_url', e.target.value)} placeholder="Optional asset URL or object key" />
                 </Field>
               </div>
             </SectionCard>
@@ -538,7 +538,7 @@ const ResponderRegistrationFlow = ({ onBackToRoles }) => {
                 <Field label="Secondary Role">
                   <input className="input-shell" value={formState.role.secondary_role} onChange={(e) => updateSection('role', 'secondary_role', e.target.value)} />
                 </Field>
-                <Field className="md:col-span-2" label="Response Category" required error={showError(validationRequested, currentErrors.response_categories)}>
+                <Field className="md:col-span-2" label="Response Category" error={showError(validationRequested, currentErrors.response_categories)}>
                   <ChipGroup options={responseCategoryOptions} selected={formState.role.response_categories} onToggle={(value) => toggleArray('role', 'response_categories', value)} />
                 </Field>
                 <Field label="Years of Experience">
@@ -607,7 +607,7 @@ const ResponderRegistrationFlow = ({ onBackToRoles }) => {
           <div className="space-y-6">
             <SectionCard title="Vehicle / Equipment Details" description="Vehicle readiness and route constraints are required for routing, deployment fit, and trust scoring.">
               <div className="grid gap-4 md:grid-cols-2">
-                <Field label="Vehicle Assigned?" required error={showError(validationRequested, currentErrors.vehicle_assigned)}>
+                <Field label="Vehicle Assigned?" error={showError(validationRequested, currentErrors.vehicle_assigned)}>
                   <select className="input-shell" value={String(formState.vehicle.assigned)} onChange={(e) => updateSection('vehicle', 'assigned', e.target.value === 'true')}>
                     <option value="false">No</option>
                     <option value="true">Yes</option>
@@ -679,10 +679,10 @@ const ResponderRegistrationFlow = ({ onBackToRoles }) => {
                     {availabilityOptions.map((option) => <option key={option}>{option}</option>)}
                   </select>
                 </Field>
-                <Field label="Shift Start Time" required={formState.coverage.availability === 'Available'} error={showError(validationRequested, currentErrors.shift_start)}>
+                <Field label="Shift Start Time" error={showError(validationRequested, currentErrors.shift_start)}>
                   <input className="input-shell" type="time" value={formState.coverage.shift_start} onChange={(e) => updateSection('coverage', 'shift_start', e.target.value)} />
                 </Field>
-                <Field label="Shift End Time" required={formState.coverage.availability === 'Available'} error={showError(validationRequested, currentErrors.shift_end)}>
+                <Field label="Shift End Time" error={showError(validationRequested, currentErrors.shift_end)}>
                   <input className="input-shell" type="time" value={formState.coverage.shift_end} onChange={(e) => updateSection('coverage', 'shift_end', e.target.value)} />
                 </Field>
                 <Field label="Max Response Radius (km)">
@@ -695,7 +695,7 @@ const ResponderRegistrationFlow = ({ onBackToRoles }) => {
                     <option value="true">Yes</option>
                   </select>
                 </Field>
-                <Field label="Real-time Location Sharing Consent" required error={showError(validationRequested, currentErrors.location_sharing)}>
+                <Field label="Real-time Location Sharing Consent" error={showError(validationRequested, currentErrors.location_sharing)}>
                   <select className="input-shell" value={String(formState.coverage.location_sharing)} onChange={(e) => updateSection('coverage', 'location_sharing', e.target.value === 'true')}>
                     <option value="false">No</option>
                     <option value="true">Yes</option>
@@ -723,10 +723,10 @@ const ResponderRegistrationFlow = ({ onBackToRoles }) => {
                     {contactMethodOptions.map((option) => <option key={option}>{option}</option>)}
                   </select>
                 </Field>
-                <Field label="Emergency Contact Person" required error={showError(validationRequested, currentErrors.emergency_contact_name)}>
+                <Field label="Emergency Contact Person" error={showError(validationRequested, currentErrors.emergency_contact_name)}>
                   <input className="input-shell" value={formState.contact.emergency_contact_name} onChange={(e) => updateSection('contact', 'emergency_contact_name', e.target.value)} />
                 </Field>
-                <Field label="Emergency Contact Number" required error={showError(validationRequested, currentErrors.emergency_contact_number)}>
+                <Field label="Emergency Contact Number" error={showError(validationRequested, currentErrors.emergency_contact_number)}>
                   <input className="input-shell" value={formState.contact.emergency_contact_number} onChange={(e) => updateSection('contact', 'emergency_contact_number', e.target.value)} />
                 </Field>
               </div>
@@ -738,11 +738,11 @@ const ResponderRegistrationFlow = ({ onBackToRoles }) => {
           <div className="space-y-6">
             <SectionCard title="Identity / Trust Verification" description="These artifacts support responder trust verification before the system uses this profile for real incident coordination.">
               <div className="grid gap-4 md:grid-cols-2">
-                <Field label="Upload Government ID" required error={showError(validationRequested, currentErrors.government_id_url)}>
-                  <input className="input-shell" value={formState.verification.government_id_url} onChange={(e) => updateSection('verification', 'government_id_url', e.target.value)} placeholder="Secure upload URL or object key" />
+                <Field label="Upload Government ID" error={showError(validationRequested, currentErrors.government_id_url)}>
+                  <input className="input-shell" value={formState.verification.government_id_url} onChange={(e) => updateSection('verification', 'government_id_url', e.target.value)} placeholder="Optional secure upload URL or object key" />
                 </Field>
-                <Field label="Upload Organization Badge / ID Card" required error={showError(validationRequested, currentErrors.organization_badge_url)}>
-                  <input className="input-shell" value={formState.verification.organization_badge_url} onChange={(e) => updateSection('verification', 'organization_badge_url', e.target.value)} placeholder="Secure upload URL or object key" />
+                <Field label="Upload Organization Badge / ID Card" error={showError(validationRequested, currentErrors.organization_badge_url)}>
+                  <input className="input-shell" value={formState.verification.organization_badge_url} onChange={(e) => updateSection('verification', 'organization_badge_url', e.target.value)} placeholder="Optional secure upload URL or object key" />
                 </Field>
                 <Field label="Upload Certification Proof" required={derivedFlags.needsCertificationProof} error={showError(validationRequested, currentErrors.certification_proof_url)}>
                   <input className="input-shell" value={formState.verification.certification_proof_url} onChange={(e) => updateSection('verification', 'certification_proof_url', e.target.value)} placeholder="Secure upload URL or object key" />
@@ -779,8 +779,8 @@ const ResponderRegistrationFlow = ({ onBackToRoles }) => {
 
             <SectionCard title="Account & Security" description="This account is what CrisisMap AI will use to authenticate the responder for secure incident coordination.">
               <div className="grid gap-4 md:grid-cols-2">
-                <Field label="Username" required error={showError(validationRequested, currentErrors.username)}>
-                  <input className="input-shell" value={formState.account.username} onChange={(e) => updateSection('account', 'username', e.target.value)} />
+                <Field label="Username" error={showError(validationRequested, currentErrors.username)}>
+                  <input className="input-shell" value={formState.account.username} onChange={(e) => updateSection('account', 'username', e.target.value)} placeholder="Optional. We will generate one if left blank." />
                 </Field>
                 <Field label="Password" required error={showError(validationRequested, currentErrors.password)}>
                   <input className="input-shell" type="password" value={formState.account.password} onChange={(e) => updateSection('account', 'password', e.target.value)} />
@@ -921,22 +921,18 @@ const validateStepOne = (state, flags) => {
   if (!state.organization.name.trim()) errors.organization_name = 'Organization name is required.'
   if (!state.organization.type) errors.organization_type = 'Organization type is required.'
   if (!state.organization.branch_name.trim()) errors.branch_name = 'Branch or station name is required.'
-  if (!state.organization.branch_id.trim()) errors.branch_id = 'Branch or station ID is required.'
-  if (!emailPattern.test(state.organization.official_email.trim())) errors.official_email = 'Enter a valid official work email.'
+  if (state.organization.official_email.trim() && !emailPattern.test(state.organization.official_email.trim())) errors.official_email = 'Enter a valid official work email.'
   if (!phonePattern.test(state.organization.contact_number.trim())) errors.organization_contact_number = 'Enter a valid organization contact number.'
   if (!state.personal.full_name.trim()) errors.full_name = 'Full name is required.'
-  if (!flags.isVolunteer && !state.personal.responder_id.trim()) errors.responder_id = 'Responder or employee ID is required.'
   if (!state.personal.date_of_birth) errors.date_of_birth = 'Date of birth is required.'
   if (!state.personal.government_id_type) errors.government_id_type = 'Government ID type is required.'
   if (!state.personal.government_id_number.trim()) errors.government_id_number = 'Government ID number is required.'
-  if (!state.personal.profile_photo_url.trim()) errors.profile_photo_url = 'Profile photo upload is required.'
   return errors
 }
 
 const validateStepTwo = (state, flags) => {
   const errors = {}
   if (!state.role.primary_role) errors.primary_role = 'Primary role is required.'
-  if (state.role.response_categories.length === 0) errors.response_categories = 'Select at least one response category.'
   if (state.skills.capabilities.length === 0) errors.skills = 'Select at least one skill.'
   if (state.skills.languages.length === 0) errors.languages = 'Select at least one language.'
   if (flags.needsShelterExperience && !state.role.shelter_operations_experience.trim()) errors.shelter_experience = 'Shelter coordinators must describe shelter operations experience.'
@@ -958,9 +954,6 @@ const validateStepTwo = (state, flags) => {
 
 const validateStepThree = (state, flags) => {
   const errors = {}
-  if (flags.showVehicleSection && !state.vehicle.assigned) {
-    errors.vehicle_assigned = 'This responder role requires vehicle assignment details.'
-  }
   if (flags.showVehicleSection && state.vehicle.assigned) {
     if (!state.vehicle.vehicle_type) errors.vehicle_type = 'Vehicle type is required when a vehicle is assigned.'
     if (!state.vehicle.registration_number.trim()) errors.vehicle_registration = 'Vehicle registration number is required.'
@@ -974,24 +967,17 @@ const validateStepFour = (state) => {
   if (!state.coverage.base_zone) errors.base_zone = 'Select a base zone.'
   if (state.coverage.coverage_zones.length === 0) errors.coverage_zones = 'Select at least one coverage zone.'
   if (!state.coverage.availability) errors.availability = 'Availability is required.'
-  if (state.coverage.availability === 'Available' && !state.coverage.shift_start) errors.shift_start = 'Shift start time is required when available.'
-  if (state.coverage.availability === 'Available' && !state.coverage.shift_end) errors.shift_end = 'Shift end time is required when available.'
-  if (!state.coverage.location_sharing) errors.location_sharing = 'Location sharing consent is required for dispatch use.'
   if (!phonePattern.test(state.contact.mobile.trim())) errors.mobile = 'Enter a valid mobile number.'
   if (!state.contact.preferred_contact_method) errors.contact_method = 'Preferred contact method is required.'
-  if (!state.contact.emergency_contact_name.trim()) errors.emergency_contact_name = 'Emergency contact person is required.'
-  if (!phonePattern.test(state.contact.emergency_contact_number.trim())) errors.emergency_contact_number = 'Enter a valid emergency contact number.'
+  if (state.contact.emergency_contact_number.trim() && !phonePattern.test(state.contact.emergency_contact_number.trim())) errors.emergency_contact_number = 'Enter a valid emergency contact number.'
   return errors
 }
 
 const validateStepFive = (state, flags) => {
   const errors = {}
-  if (!state.verification.government_id_url.trim()) errors.government_id_url = 'Government ID upload is required.'
-  if (!state.verification.organization_badge_url.trim()) errors.organization_badge_url = 'Organization badge upload is required.'
   if (flags.needsCertificationProof && !state.verification.certification_proof_url.trim()) errors.certification_proof_url = 'Certification proof is required for this responder role.'
   if (flags.requiresDriverLicense && !state.verification.driver_license_url.trim()) errors.driver_license_url = 'Driver license upload is required.'
   if (flags.requiresMedicalLicense && !state.verification.medical_license_url.trim()) errors.medical_license_url = 'Medical license upload is required.'
-  if (!state.account.username.trim()) errors.username = 'Username is required.'
   if ((state.account.password || '').length < 8) errors.password = 'Password must be at least 8 characters.'
   if (state.account.password !== state.account.confirm_password) errors.confirm_password = 'Passwords must match.'
   if (!state.account.terms_acknowledged) errors.terms_acknowledged = 'You must acknowledge the terms.'
@@ -1012,8 +998,8 @@ const buildResponderPayload = (state) => ({
     name: state.organization.name.trim(),
     type: state.organization.type,
     branch_name: state.organization.branch_name.trim(),
-    branch_id: state.organization.branch_id.trim(),
-    official_email: state.organization.official_email.trim(),
+    branch_id: normalizeOptionalText(state.organization.branch_id),
+    official_email: normalizeOptionalText(state.organization.official_email),
     contact_number: state.organization.contact_number.trim(),
     verification_status: state.organization.verification_status,
   },
@@ -1024,7 +1010,7 @@ const buildResponderPayload = (state) => ({
     gender: normalizeOptionalText(state.personal.gender),
     government_id_type: state.personal.government_id_type,
     government_id_number: state.personal.government_id_number.trim(),
-    profile_photo_url: state.personal.profile_photo_url.trim(),
+    profile_photo_url: normalizeOptionalText(state.personal.profile_photo_url),
   },
   role: {
     primary_role: state.role.primary_role,
@@ -1073,12 +1059,12 @@ const buildResponderPayload = (state) => ({
     backup_contact: normalizeOptionalText(state.contact.backup_contact),
     radio_call_sign: normalizeOptionalText(state.contact.radio_call_sign),
     preferred_contact_method: state.contact.preferred_contact_method,
-    emergency_contact_name: state.contact.emergency_contact_name.trim(),
-    emergency_contact_number: state.contact.emergency_contact_number.trim(),
+    emergency_contact_name: normalizeOptionalText(state.contact.emergency_contact_name),
+    emergency_contact_number: normalizeOptionalText(state.contact.emergency_contact_number),
   },
   verification: {
-    government_id_url: state.verification.government_id_url.trim(),
-    organization_badge_url: state.verification.organization_badge_url.trim(),
+    government_id_url: normalizeOptionalText(state.verification.government_id_url),
+    organization_badge_url: normalizeOptionalText(state.verification.organization_badge_url),
     certification_proof_url: normalizeOptionalText(state.verification.certification_proof_url),
     driver_license_url: normalizeOptionalText(state.verification.driver_license_url),
     medical_license_url: normalizeOptionalText(state.verification.medical_license_url),
@@ -1087,7 +1073,7 @@ const buildResponderPayload = (state) => ({
     supervisor_approval: state.verification.supervisor_approval,
   },
   account: {
-    username: state.account.username.trim(),
+    username: normalizeOptionalText(state.account.username),
     password: state.account.password,
     terms_acknowledged: state.account.terms_acknowledged,
     data_sharing_consent: state.account.data_sharing_consent,
