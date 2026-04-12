@@ -1,0 +1,287 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    color-scheme: light;
+  }
+
+  body {
+    margin: 0;
+    font-family: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    background:
+      radial-gradient(circle at top, rgba(217, 45, 32, 0.14), transparent 24%),
+      linear-gradient(180deg, #fcfcfb 0%, #f5f7fb 42%, #eef2f7 100%);
+    color: #0f172a;
+  }
+
+  * {
+    box-sizing: border-box;
+  }
+
+  a {
+    color: inherit;
+    text-decoration: none;
+  }
+
+  button,
+  input,
+  select,
+  textarea {
+    font: inherit;
+  }
+}
+
+@layer components {
+  .bg-app {
+    background:
+      radial-gradient(circle at top left, rgba(251, 113, 133, 0.18), transparent 24%),
+      radial-gradient(circle at 85% 15%, rgba(59, 130, 246, 0.12), transparent 22%),
+      linear-gradient(180deg, #fffdfb 0%, #f6f8fc 46%, #eef2f7 100%);
+  }
+
+  .app-shell {
+    @apply mx-auto flex min-h-screen w-full max-w-[1320px] flex-col px-5 py-5 sm:px-8 lg:px-10;
+  }
+
+  .topbar {
+    @apply flex flex-col gap-4 rounded-[30px] border border-white/80 bg-white/85 px-7 py-5 shadow-[0_24px_80px_rgba(15,23,42,0.08)] backdrop-blur lg:flex-row lg:items-center lg:justify-between;
+  }
+
+  .brand-lockup {
+    @apply inline-flex items-start;
+  }
+
+  .brand-title {
+    @apply mt-1 text-4xl font-black tracking-tight text-slate-950 sm:text-5xl;
+  }
+
+  .topbar-right {
+    @apply flex flex-wrap items-center gap-3;
+  }
+
+  .app-header {
+    @apply flex flex-col gap-4 rounded-[28px] border border-white bg-white px-6 py-6 shadow-[0_24px_80px_rgba(15,23,42,0.08)] backdrop-blur md:flex-row md:items-start md:justify-between;
+  }
+
+  .eyebrow {
+    @apply text-xs font-semibold uppercase tracking-[0.3em] text-rose-600;
+  }
+
+  .header-chip {
+    @apply inline-flex items-center gap-2 self-start rounded-full border border-emerald-200 bg-emerald-50 px-4 py-2 text-sm font-semibold text-emerald-700;
+  }
+
+  .status-dot {
+    @apply h-2.5 w-2.5 rounded-full bg-emerald-500;
+  }
+
+  .app-nav {
+    @apply mt-4 flex flex-wrap gap-2 rounded-2xl border border-white bg-white/85 p-2 shadow-[0_10px_35px_rgba(15,23,42,0.05)] backdrop-blur;
+  }
+
+  .nav-pill {
+    @apply rounded-xl px-4 py-2 text-sm font-semibold text-slate-600 transition hover:bg-slate-100 hover:text-slate-900;
+  }
+
+  .nav-pill-active {
+    @apply bg-slate-900 text-white shadow-sm;
+  }
+
+  .panel {
+    @apply rounded-[24px] border border-white bg-white p-5 shadow-[0_16px_60px_rgba(15,23,42,0.08)] backdrop-blur;
+  }
+
+  .page-hero {
+    @apply flex flex-col gap-4 md:flex-row md:items-start md:justify-between;
+  }
+
+  .panel-title {
+    @apply text-xl font-bold tracking-tight text-slate-950;
+  }
+
+  .panel-subtitle {
+    @apply mt-1 text-sm text-slate-500;
+  }
+
+  .metric-card {
+    @apply rounded-[22px] border border-white bg-white p-5 shadow-[0_12px_36px_rgba(15,23,42,0.06)];
+  }
+
+  .metric-label {
+    @apply text-sm font-medium uppercase tracking-[0.2em] text-slate-500;
+  }
+
+  .metric-value {
+    @apply mt-3 text-4xl font-black tracking-tight text-slate-950;
+  }
+
+  .soft-grid {
+    @apply grid gap-4;
+  }
+
+  .badge {
+    @apply inline-flex items-center rounded-full px-3 py-1 text-xs font-semibold uppercase tracking-wide;
+  }
+
+  .badge-critical {
+    @apply bg-rose-100 text-rose-700;
+  }
+
+  .badge-high {
+    @apply bg-orange-100 text-orange-700;
+  }
+
+  .badge-medium {
+    @apply bg-amber-100 text-amber-700;
+  }
+
+  .badge-low {
+    @apply bg-emerald-100 text-emerald-700;
+  }
+
+  .input-shell {
+    @apply mt-2 w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-slate-900 shadow-sm outline-none transition focus:border-rose-400 focus:ring-4 focus:ring-rose-100;
+  }
+
+  .section-kicker {
+    @apply text-xs font-semibold uppercase tracking-[0.24em] text-rose-600;
+  }
+
+  .hero-sos {
+    @apply rounded-[30px] bg-[linear-gradient(135deg,#7f1d1d_0%,#b91c1c_48%,#ea580c_100%)] p-6 text-white shadow-[0_26px_90px_rgba(127,29,29,0.34)];
+  }
+
+  .marketing-hero {
+    @apply grid gap-6 rounded-[34px] border border-white/90 bg-white/90 p-7 shadow-[0_28px_96px_rgba(15,23,42,0.10)] backdrop-blur xl:grid-cols-[1.2fr_0.8fr];
+  }
+
+  .marketing-title {
+    @apply max-w-4xl text-4xl font-black tracking-tight text-slate-950 sm:text-5xl;
+  }
+
+  .marketing-copy {
+    @apply max-w-3xl text-lg leading-8 text-slate-600;
+  }
+
+  .marketing-sidecar {
+    @apply flex items-stretch;
+  }
+
+  .feature-card {
+    @apply rounded-[24px] border border-slate-100 bg-slate-50/75 p-5 shadow-[inset_0_1px_0_rgba(255,255,255,0.65)];
+  }
+
+  .workspace-hero {
+    @apply flex flex-col gap-6 rounded-[34px] border border-white/90 bg-white/90 p-7 shadow-[0_28px_96px_rgba(15,23,42,0.10)] backdrop-blur lg:flex-row lg:items-start lg:justify-between;
+  }
+
+  .workspace-kicker {
+    @apply text-xs font-semibold uppercase tracking-[0.24em] text-slate-500;
+  }
+
+  .workspace-badge {
+    @apply inline-flex items-center gap-2 self-start rounded-full border border-sky-200 bg-sky-50 px-4 py-2 text-sm font-semibold capitalize text-sky-800;
+  }
+
+  .landing-page {
+    @apply mx-auto flex max-w-5xl flex-col items-center gap-10 pb-16 pt-10;
+  }
+
+  .landing-hero {
+    @apply flex w-full flex-col items-center text-center;
+  }
+
+  .landing-title {
+    @apply mx-auto mt-4 max-w-4xl text-5xl font-black tracking-tight text-slate-950 sm:text-6xl;
+  }
+
+  .landing-copy {
+    @apply mx-auto mt-6 max-w-3xl text-lg leading-9 text-slate-600;
+  }
+
+  .landing-strip {
+    @apply grid w-full gap-4 md:grid-cols-3;
+  }
+
+  .landing-strip-item {
+    @apply rounded-[22px] border border-white/80 bg-white/75 px-5 py-4 text-center text-sm font-semibold text-slate-700 shadow-[0_12px_36px_rgba(15,23,42,0.05)];
+  }
+
+  .landing-sections {
+    @apply grid w-full gap-5 md:grid-cols-3;
+  }
+
+  .landing-section-card {
+    @apply rounded-[26px] border border-white/90 bg-white/90 p-6 text-left shadow-[0_16px_48px_rgba(15,23,42,0.06)];
+  }
+
+  .landing-section-title {
+    @apply text-2xl font-bold tracking-tight text-slate-950;
+  }
+
+  .landing-section-copy {
+    @apply mt-4 text-base leading-8 text-slate-600;
+  }
+
+  .landing-bottom {
+    @apply grid w-full gap-5 md:grid-cols-3;
+  }
+
+  .landing-bottom-card {
+    @apply rounded-[28px] border border-white/90 bg-white p-6 shadow-[0_16px_48px_rgba(15,23,42,0.06)];
+  }
+
+  .workspace-page {
+    @apply mx-auto flex max-w-6xl flex-col gap-8 pb-16;
+  }
+
+  .workspace-page-hero {
+    @apply flex flex-col items-center rounded-[34px] border border-white/90 bg-white px-8 py-12 text-center shadow-[0_26px_90px_rgba(15,23,42,0.08)];
+  }
+
+  .workspace-page-title {
+    @apply mt-3 max-w-4xl text-5xl font-black tracking-tight text-slate-950;
+  }
+
+  .workspace-page-copy {
+    @apply mt-5 max-w-3xl text-lg leading-9 text-slate-600;
+  }
+
+  .workspace-summary-grid {
+    @apply grid gap-4 md:grid-cols-2 xl:grid-cols-4;
+  }
+
+  .workspace-summary-card {
+    @apply rounded-[24px] border border-white/90 bg-white/90 p-5 shadow-[0_16px_48px_rgba(15,23,42,0.06)];
+  }
+
+  .workspace-info-block {
+    @apply rounded-[30px] border border-white/90 bg-white p-7 shadow-[0_18px_56px_rgba(15,23,42,0.06)];
+  }
+
+  .workspace-section-title {
+    @apply text-3xl font-black tracking-tight text-slate-950;
+  }
+
+  .workspace-notes {
+    @apply grid gap-5 md:grid-cols-2;
+  }
+
+  .workspace-note-card {
+    @apply rounded-[26px] border border-white/90 bg-white/90 p-6 shadow-[0_16px_48px_rgba(15,23,42,0.05)];
+  }
+
+  .button-primary {
+    @apply inline-flex items-center justify-center rounded-2xl bg-slate-950 px-4 py-3 font-semibold text-white transition hover:bg-slate-800 disabled:cursor-not-allowed disabled:opacity-50;
+  }
+
+  .button-danger {
+    @apply inline-flex items-center justify-center rounded-2xl bg-rose-600 px-4 py-3 font-semibold text-white transition hover:bg-rose-700 disabled:cursor-not-allowed disabled:opacity-50;
+  }
+
+  .button-soft {
+    @apply inline-flex items-center justify-center rounded-2xl border border-slate-200 bg-white px-4 py-3 font-semibold text-slate-700 transition hover:border-slate-300 hover:bg-slate-50;
+  }
+}

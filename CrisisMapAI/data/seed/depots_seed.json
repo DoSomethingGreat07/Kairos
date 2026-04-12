@@ -1,0 +1,77 @@
+[
+  {
+    "depot_id": "DEP-001",
+    "name": "Supply Depot 1",
+    "zone_id": "zone_a",
+    "supply": 170,
+    "latitude": 41.85,
+    "longitude": -87.65,
+    "assigned_shelters": [
+      "SHE-001",
+      "SHE-002"
+    ],
+    "profile_data": {
+      "cold_chain": true
+    }
+  },
+  {
+    "depot_id": "DEP-002",
+    "name": "Supply Depot 2",
+    "zone_id": "zone_c",
+    "supply": 215,
+    "latitude": 41.868,
+    "longitude": -87.635,
+    "assigned_shelters": [
+      "SHE-003",
+      "SHE-004"
+    ],
+    "profile_data": {
+      "cold_chain": false
+    }
+  },
+  {
+    "depot_id": "DEP-003",
+    "name": "Supply Depot 3",
+    "zone_id": "zone_e",
+    "supply": 260,
+    "latitude": 41.886,
+    "longitude": -87.62,
+    "assigned_shelters": [
+      "SHE-005",
+      "SHE-006"
+    ],
+    "profile_data": {
+      "cold_chain": true
+    }
+  },
+  {
+    "depot_id": "DEP-004",
+    "name": "Supply Depot 4",
+    "zone_id": "zone_g",
+    "supply": 305,
+    "latitude": 41.904,
+    "longitude": -87.605,
+    "assigned_shelters": [
+      "SHE-007",
+      "SHE-008"
+    ],
+    "profile_data": {
+      "cold_chain": false
+    }
+  },
+  {
+    "depot_id": "DEP-005",
+    "name": "Supply Depot 5",
+    "zone_id": "zone_i",
+    "supply": 350,
+    "latitude": 41.922000000000004,
+    "longitude": -87.59,
+    "assigned_shelters": [
+      "SHE-009",
+      "SHE-010"
+    ],
+    "profile_data": {
+      "cold_chain": true
+    }
+  }
+]

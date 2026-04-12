@@ -1,0 +1,132 @@
+[
+  {
+    "shelter_id": "SHE-001",
+    "name": "Zone A Relief Shelter",
+    "zone_id": "zone_a",
+    "capacity": 120,
+    "occupancy": 40,
+    "demand": 65,
+    "latitude": 41.85,
+    "longitude": -87.65,
+    "profile_data": {
+      "accepts_pets": true
+    }
+  },
+  {
+    "shelter_id": "SHE-002",
+    "name": "Zone B Relief Shelter",
+    "zone_id": "zone_b",
+    "capacity": 140,
+    "occupancy": 51,
+    "demand": 74,
+    "latitude": 41.86,
+    "longitude": -87.658,
+    "profile_data": {
+      "accepts_pets": false
+    }
+  },
+  {
+    "shelter_id": "SHE-003",
+    "name": "Zone C Relief Shelter",
+    "zone_id": "zone_c",
+    "capacity": 160,
+    "occupancy": 62,
+    "demand": 83,
+    "latitude": 41.870000000000005,
+    "longitude": -87.66600000000001,
+    "profile_data": {
+      "accepts_pets": true
+    }
+  },
+  {
+    "shelter_id": "SHE-004",
+    "name": "Zone D Relief Shelter",
+    "zone_id": "zone_d",
+    "capacity": 180,
+    "occupancy": 73,
+    "demand": 92,
+    "latitude": 41.88,
+    "longitude": -87.674,
+    "profile_data": {
+      "accepts_pets": false
+    }
+  },
+  {
+    "shelter_id": "SHE-005",
+    "name": "Zone E Relief Shelter",
+    "zone_id": "zone_e",
+    "capacity": 200,
+    "occupancy": 84,
+    "demand": 101,
+    "latitude": 41.89,
+    "longitude": -87.682,
+    "profile_data": {
+      "accepts_pets": true
+    }
+  },
+  {
+    "shelter_id": "SHE-006",
+    "name": "Zone F Relief Shelter",
+    "zone_id": "zone_f",
+    "capacity": 220,
+    "occupancy": 95,
+    "demand": 110,
+    "latitude": 41.9,
+    "longitude": -87.69000000000001,
+    "profile_data": {
+      "accepts_pets": false
+    }
+  },
+  {
+    "shelter_id": "SHE-007",
+    "name": "Zone G Relief Shelter",
+    "zone_id": "zone_g",
+    "capacity": 240,
+    "occupancy": 106,
+    "demand": 119,
+    "latitude": 41.910000000000004,
+    "longitude": -87.69800000000001,
+    "profile_data": {
+      "accepts_pets": true
+    }
+  },
+  {
+    "shelter_id": "SHE-008",
+    "name": "Zone H Relief Shelter",
+    "zone_id": "zone_h",
+    "capacity": 260,
+    "occupancy": 117,
+    "demand": 128,
+    "latitude": 41.92,
+    "longitude": -87.706,
+    "profile_data": {
+      "accepts_pets": false
+    }
+  },
+  {
+    "shelter_id": "SHE-009",
+    "name": "Zone I Relief Shelter",
+    "zone_id": "zone_i",
+    "capacity": 280,
+    "occupancy": 128,
+    "demand": 137,
+    "latitude": 41.93,
+    "longitude": -87.714,
+    "profile_data": {
+      "accepts_pets": true
+    }
+  },
+  {
+    "shelter_id": "SHE-010",
+    "name": "Zone J Relief Shelter",
+    "zone_id": "zone_j",
+    "capacity": 300,
+    "occupancy": 139,
+    "demand": 146,
+    "latitude": 41.940000000000005,
+    "longitude": -87.72200000000001,
+    "profile_data": {
+      "accepts_pets": false
+    }
+  }
+]

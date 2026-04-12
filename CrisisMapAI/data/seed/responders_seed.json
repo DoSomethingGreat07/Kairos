@@ -1,0 +1,1445 @@
+[
+  {
+    "id": "3d69a882-1f37-505e-9034-c5fceb8531ad",
+    "responder_id": "RSP-001",
+    "organization_id": "93ae520b-267f-573b-a953-791993502407",
+    "employee_id": "EMP-001",
+    "full_name": "Responder 1",
+    "role_title": "Ambulance Driver",
+    "phone": "+13127771000",
+    "profile_photo_url": "",
+    "years_of_experience": 1,
+    "responder_type": "Ambulance Driver",
+    "capabilities": [
+      "Advanced Life Support",
+      "Basic First Aid",
+      "Oxygen Administration"
+    ],
+    "active_capabilities": [
+      "Advanced Life Support",
+      "Basic First Aid"
+    ],
+    "personal_equipment": [
+      "Radio",
+      "Helmet"
+    ],
+    "primary_station_zone_id": "zone_a",
+    "coverage_zone_ids": [
+      "zone_a",
+      "zone_b",
+      "zone_c"
+    ],
+    "max_travel_radius_km": 10,
+    "flooded_conditions": true,
+    "fire_conditions": true,
+    "height_conditions": false,
+    "confined_space_conditions": false,
+    "availability_status": "busy",
+    "shift_schedule": {
+      "shift_type": "day"
+    },
+    "notification_preference": "all_alerts",
+    "languages": [
+      "English",
+      "English"
+    ],
+    "profile_data": {
+      "latitude": 41.85,
+      "longitude": -87.65,
+      "skills": [
+        "Advanced Life Support",
+        "Basic First Aid"
+      ],
+      "has_equipment": false,
+      "available": false,
+      "current_zone": "zone_a"
+    },
+    "status": "active"
+  },
+  {
+    "id": "9c6d28ed-b961-5643-baf0-7979078eddcc",
+    "responder_id": "RSP-002",
+    "organization_id": "9f26a910-986a-56c1-a685-853f970c3568",
+    "employee_id": "EMP-002",
+    "full_name": "Responder 2",
+    "role_title": "Paramedic",
+    "phone": "+13127771001",
+    "profile_photo_url": "",
+    "years_of_experience": 2,
+    "responder_type": "Paramedic",
+    "capabilities": [
+      "Oxygen Administration",
+      "CPR",
+      "Trauma Support"
+    ],
+    "active_capabilities": [
+      "Oxygen Administration",
+      "CPR"
+    ],
+    "personal_equipment": [
+      "Radio",
+      "Helmet",
+      "Oxygen Kit"
+    ],
+    "primary_station_zone_id": "zone_b",
+    "coverage_zone_ids": [
+      "zone_b",
+      "zone_c",
+      "zone_d"
+    ],
+    "max_travel_radius_km": 15,
+    "flooded_conditions": false,
+    "fire_conditions": false,
+    "height_conditions": true,
+    "confined_space_conditions": true,
+    "availability_status": "available_now",
+    "shift_schedule": {
+      "shift_type": "night"
+    },
+    "notification_preference": "all_alerts",
+    "languages": [
+      "Spanish",
+      "English"
+    ],
+    "profile_data": {
+      "latitude": 41.86,
+      "longitude": -87.65,
+      "skills": [
+        "Oxygen Administration",
+        "CPR"
+      ],
+      "has_equipment": true,
+      "available": true,
+      "current_zone": "zone_b"
+    },
+    "status": "active"
+  },
+  {
+    "id": "68bb6845-cc36-5d20-bfab-a16c6fbbec76",
+    "responder_id": "RSP-003",
+    "organization_id": "0167bb7b-64c9-5e0f-b369-27722e6f7004",
+    "employee_id": "EMP-003",
+    "full_name": "Responder 3",
+    "role_title": "Firefighter",
+    "phone": "+13127771002",
+    "profile_photo_url": "",
+    "years_of_experience": 3,
+    "responder_type": "Firefighter",
+    "capabilities": [
+      "Fire Suppression",
+      "Oxygen Administration",
+      "Fire Suppression"
+    ],
+    "active_capabilities": [
+      "Fire Suppression",
+      "Oxygen Administration"
+    ],
+    "personal_equipment": [
+      "Radio",
+      "Helmet",
+      "Oxygen Kit"
+    ],
+    "primary_station_zone_id": "zone_c",
+    "coverage_zone_ids": [
+      "zone_c",
+      "zone_d",
+      "zone_e"
+    ],
+    "max_travel_radius_km": 20,
+    "flooded_conditions": false,
+    "fire_conditions": true,
+    "height_conditions": true,
+    "confined_space_conditions": false,
+    "availability_status": "available_now",
+    "shift_schedule": {
+      "shift_type": "rotational"
+    },
+    "notification_preference": "all_alerts",
+    "languages": [
+      "Hindi",
+      "English"
+    ],
+    "profile_data": {
+      "latitude": 41.870000000000005,
+      "longitude": -87.65,
+      "skills": [
+        "Fire Suppression",
+        "Oxygen Administration"
+      ],
+      "has_equipment": true,
+      "available": true,
+      "current_zone": "zone_c"
+    },
+    "status": "active"
+  },
+  {
+    "id": "2d2c0d5b-1f22-52d5-acf8-d891d0f0cb80",
+    "responder_id": "RSP-004",
+    "organization_id": "3d019ffd-911c-575f-ac5b-9974cd143000",
+    "employee_id": "EMP-004",
+    "full_name": "Responder 4",
+    "role_title": "Rescue Operator",
+    "phone": "+13127771003",
+    "profile_photo_url": "",
+    "years_of_experience": 4,
+    "responder_type": "Rescue Operator",
+    "capabilities": [
+      "Debris Search",
+      "Trauma Support",
+      "Debris Search"
+    ],
+    "active_capabilities": [
+      "Debris Search",
+      "Trauma Support"
+    ],
+    "personal_equipment": [
+      "Radio",
+      "Helmet",
+      "Oxygen Kit"
+    ],
+    "primary_station_zone_id": "zone_d",
+    "coverage_zone_ids": [
+      "zone_d",
+      "zone_e",
+      "zone_f"
+    ],
+    "max_travel_radius_km": 25,
+    "flooded_conditions": true,
+    "fire_conditions": false,
+    "height_conditions": false,
+    "confined_space_conditions": true,
+    "availability_status": "available_now",
+    "shift_schedule": {
+      "shift_type": "on_call"
+    },
+    "notification_preference": "all_alerts",
+    "languages": [
+      "Arabic",
+      "English"
+    ],
+    "profile_data": {
+      "latitude": 41.88,
+      "longitude": -87.65,
+      "skills": [
+        "Debris Search",
+        "Trauma Support"
+      ],
+      "has_equipment": true,
+      "available": true,
+      "current_zone": "zone_d"
+    },
+    "status": "active"
+  },
+  {
+    "id": "d57f5f8f-15da-5b4c-ac3b-c0eccf95f5cc",
+    "responder_id": "RSP-005",
+    "organization_id": "cb52cfc4-af32-558d-8429-0f54a09508bf",
+    "employee_id": "EMP-005",
+    "full_name": "Responder 5",
+    "role_title": "Medical Staff",
+    "phone": "+13127771004",
+    "profile_photo_url": "",
+    "years_of_experience": 5,
+    "responder_type": "Medical Staff",
+    "capabilities": [
+      "Trauma Support",
+      "Fire Suppression",
+      "Rope Rescue"
+    ],
+    "active_capabilities": [
+      "Trauma Support",
+      "Fire Suppression"
+    ],
+    "personal_equipment": [
+      "Radio",
+      "Helmet"
+    ],
+    "primary_station_zone_id": "zone_e",
+    "coverage_zone_ids": [
+      "zone_e",
+      "zone_f",
+      "zone_g"
+    ],
+    "max_travel_radius_km": 30,
+    "flooded_conditions": false,
+    "fire_conditions": true,
+    "height_conditions": false,
+    "confined_space_conditions": false,
+    "availability_status": "available_now",
+    "shift_schedule": {
+      "shift_type": "day"
+    },
+    "notification_preference": "all_alerts",
+    "languages": [
+      "Telugu",
+      "English"
+    ],
+    "profile_data": {
+      "latitude": 41.89,
+      "longitude": -87.65,
+      "skills": [
+        "Trauma Support",
+        "Fire Suppression"
+      ],
+      "has_equipment": false,
+      "available": true,
+      "current_zone": "zone_e"
+    },
+    "status": "active"
+  },
+  {
+    "id": "c8d3d3e3-52e8-5e0b-a031-9012c6db0612",
+    "responder_id": "RSP-006",
+    "organization_id": "2c22b6b8-6992-5aac-8f05-64edc78412f0",
+    "employee_id": "EMP-006",
+    "full_name": "Responder 6",
+    "role_title": "Ambulance Driver",
+    "phone": "+13127771005",
+    "profile_photo_url": "",
+    "years_of_experience": 6,
+    "responder_type": "Ambulance Driver",
+    "capabilities": [
+      "Advanced Life Support",
+      "Debris Search",
+      "Shelter Operations"
+    ],
+    "active_capabilities": [
+      "Advanced Life Support",
+      "Debris Search"
+    ],
+    "personal_equipment": [
+      "Radio",
+      "Helmet",
+      "Oxygen Kit"
+    ],
+    "primary_station_zone_id": "zone_f",
+    "coverage_zone_ids": [
+      "zone_f",
+      "zone_g",
+      "zone_h"
+    ],
+    "max_travel_radius_km": 10,
+    "flooded_conditions": false,
+    "fire_conditions": false,
+    "height_conditions": false,
+    "confined_space_conditions": true,
+    "availability_status": "available_now",
+    "shift_schedule": {
+      "shift_type": "night"
+    },
+    "notification_preference": "all_alerts",
+    "languages": [
+      "English",
+      "English"
+    ],
+    "profile_data": {
+      "latitude": 41.9,
+      "longitude": -87.65,
+      "skills": [
+        "Advanced Life Support",
+        "Debris Search"
+      ],
+      "has_equipment": true,
+      "available": true,
+      "current_zone": "zone_f"
+    },
+    "status": "active"
+  },
+  {
+    "id": "17d7825b-2919-56bc-864e-6bfb03695944",
+    "responder_id": "RSP-007",
+    "organization_id": "93ae520b-267f-573b-a953-791993502407",
+    "employee_id": "EMP-007",
+    "full_name": "Responder 7",
+    "role_title": "Paramedic",
+    "phone": "+13127771006",
+    "profile_photo_url": "",
+    "years_of_experience": 7,
+    "responder_type": "Paramedic",
+    "capabilities": [
+      "Oxygen Administration",
+      "Rope Rescue",
+      "Supply Distribution"
+    ],
+    "active_capabilities": [
+      "Oxygen Administration",
+      "Rope Rescue"
+    ],
+    "personal_equipment": [
+      "Radio",
+      "Helmet",
+      "Oxygen Kit"
+    ],
+    "primary_station_zone_id": "zone_g",
+    "coverage_zone_ids": [
+      "zone_g",
+      "zone_h",
+      "zone_i"
+    ],
+    "max_travel_radius_km": 15,
+    "flooded_conditions": true,
+    "fire_conditions": true,
+    "height_conditions": true,
+    "confined_space_conditions": false,
+    "availability_status": "busy",
+    "shift_schedule": {
+      "shift_type": "rotational"
+    },
+    "notification_preference": "all_alerts",
+    "languages": [
+      "Spanish",
+      "English"
+    ],
+    "profile_data": {
+      "latitude": 41.910000000000004,
+      "longitude": -87.65,
+      "skills": [
+        "Oxygen Administration",
+        "Rope Rescue"
+      ],
+      "has_equipment": true,
+      "available": false,
+      "current_zone": "zone_g"
+    },
+    "status": "active"
+  },
+  {
+    "id": "4b9f68d8-e283-51a0-b7e7-255c5839ab92",
+    "responder_id": "RSP-008",
+    "organization_id": "9f26a910-986a-56c1-a685-853f970c3568",
+    "employee_id": "EMP-008",
+    "full_name": "Responder 8",
+    "role_title": "Firefighter",
+    "phone": "+13127771007",
+    "profile_photo_url": "",
+    "years_of_experience": 8,
+    "responder_type": "Firefighter",
+    "capabilities": [
+      "Fire Suppression",
+      "Shelter Operations",
+      "Language Translation"
+    ],
+    "active_capabilities": [
+      "Fire Suppression",
+      "Shelter Operations"
+    ],
+    "personal_equipment": [
+      "Radio",
+      "Helmet",
+      "Oxygen Kit"
+    ],
+    "primary_station_zone_id": "zone_h",
+    "coverage_zone_ids": [
+      "zone_h",
+      "zone_i",
+      "zone_j"
+    ],
+    "max_travel_radius_km": 20,
+    "flooded_conditions": false,
+    "fire_conditions": false,
+    "height_conditions": true,
+    "confined_space_conditions": true,
+    "availability_status": "available_now",
+    "shift_schedule": {
+      "shift_type": "on_call"
+    },
+    "notification_preference": "all_alerts",
+    "languages": [
+      "Hindi",
+      "English"
+    ],
+    "profile_data": {
+      "latitude": 41.92,
+      "longitude": -87.65,
+      "skills": [
+        "Fire Suppression",
+        "Shelter Operations"
+      ],
+      "has_equipment": true,
+      "available": true,
+      "current_zone": "zone_h"
+    },
+    "status": "active"
+  },
+  {
+    "id": "76bca897-2825-5401-bd0b-356d9666372a",
+    "responder_id": "RSP-009",
+    "organization_id": "0167bb7b-64c9-5e0f-b369-27722e6f7004",
+    "employee_id": "EMP-009",
+    "full_name": "Responder 9",
+    "role_title": "Rescue Operator",
+    "phone": "+13127771008",
+    "profile_photo_url": "",
+    "years_of_experience": 9,
+    "responder_type": "Rescue Operator",
+    "capabilities": [
+      "Debris Search",
+      "Supply Distribution",
+      "Advanced Life Support"
+    ],
+    "active_capabilities": [
+      "Debris Search",
+      "Supply Distribution"
+    ],
+    "personal_equipment": [
+      "Radio",
+      "Helmet"
+    ],
+    "primary_station_zone_id": "zone_i",
+    "coverage_zone_ids": [
+      "zone_i",
+      "zone_j",
+      "zone_a"
+    ],
+    "max_travel_radius_km": 25,
+    "flooded_conditions": false,
+    "fire_conditions": true,
+    "height_conditions": false,
+    "confined_space_conditions": false,
+    "availability_status": "available_now",
+    "shift_schedule": {
+      "shift_type": "day"
+    },
+    "notification_preference": "all_alerts",
+    "languages": [
+      "Arabic",
+      "English"
+    ],
+    "profile_data": {
+      "latitude": 41.93,
+      "longitude": -87.65,
+      "skills": [
+        "Debris Search",
+        "Supply Distribution"
+      ],
+      "has_equipment": false,
+      "available": true,
+      "current_zone": "zone_i"
+    },
+    "status": "active"
+  },
+  {
+    "id": "20a28e53-ec90-5640-a80f-f9ca76d404d3",
+    "responder_id": "RSP-010",
+    "organization_id": "3d019ffd-911c-575f-ac5b-9974cd143000",
+    "employee_id": "EMP-010",
+    "full_name": "Responder 10",
+    "role_title": "Medical Staff",
+    "phone": "+13127771009",
+    "profile_photo_url": "",
+    "years_of_experience": 10,
+    "responder_type": "Medical Staff",
+    "capabilities": [
+      "Trauma Support",
+      "Language Translation",
+      "Basic First Aid"
+    ],
+    "active_capabilities": [
+      "Trauma Support",
+      "Language Translation"
+    ],
+    "personal_equipment": [
+      "Radio",
+      "Helmet",
+      "Oxygen Kit"
+    ],
+    "primary_station_zone_id": "zone_j",
+    "coverage_zone_ids": [
+      "zone_j",
+      "zone_a",
+      "zone_b"
+    ],
+    "max_travel_radius_km": 30,
+    "flooded_conditions": true,
+    "fire_conditions": false,
+    "height_conditions": false,
+    "confined_space_conditions": true,
+    "availability_status": "available_now",
+    "shift_schedule": {
+      "shift_type": "night"
+    },
+    "notification_preference": "all_alerts",
+    "languages": [
+      "Telugu",
+      "English"
+    ],
+    "profile_data": {
+      "latitude": 41.940000000000005,
+      "longitude": -87.65,
+      "skills": [
+        "Trauma Support",
+        "Language Translation"
+      ],
+      "has_equipment": true,
+      "available": true,
+      "current_zone": "zone_j"
+    },
+    "status": "active"
+  },
+  {
+    "id": "d4853e2b-ef75-5b47-9bbe-dd3bee14ca58",
+    "responder_id": "RSP-011",
+    "organization_id": "cb52cfc4-af32-558d-8429-0f54a09508bf",
+    "employee_id": "EMP-011",
+    "full_name": "Responder 11",
+    "role_title": "Ambulance Driver",
+    "phone": "+13127771010",
+    "profile_photo_url": "",
+    "years_of_experience": 11,
+    "responder_type": "Ambulance Driver",
+    "capabilities": [
+      "Advanced Life Support",
+      "Advanced Life Support",
+      "CPR"
+    ],
+    "active_capabilities": [
+      "Advanced Life Support",
+      "Advanced Life Support"
+    ],
+    "personal_equipment": [
+      "Radio",
+      "Helmet",
+      "Oxygen Kit"
+    ],
+    "primary_station_zone_id": "zone_a",
+    "coverage_zone_ids": [
+      "zone_a",
+      "zone_b",
+      "zone_c"
+    ],
+    "max_travel_radius_km": 10,
+    "flooded_conditions": false,
+    "fire_conditions": true,
+    "height_conditions": false,
+    "confined_space_conditions": false,
+    "availability_status": "available_now",
+    "shift_schedule": {
+      "shift_type": "rotational"
+    },
+    "notification_preference": "all_alerts",
+    "languages": [
+      "English",
+      "English"
+    ],
+    "profile_data": {
+      "latitude": 41.85,
+      "longitude": -87.63000000000001,
+      "skills": [
+        "Advanced Life Support",
+        "Advanced Life Support"
+      ],
+      "has_equipment": true,
+      "available": true,
+      "current_zone": "zone_a"
+    },
+    "status": "active"
+  },
+  {
+    "id": "9cd1613d-dd6c-5879-a794-bf16f62004a8",
+    "responder_id": "RSP-012",
+    "organization_id": "2c22b6b8-6992-5aac-8f05-64edc78412f0",
+    "employee_id": "EMP-012",
+    "full_name": "Responder 12",
+    "role_title": "Paramedic",
+    "phone": "+13127771011",
+    "profile_photo_url": "",
+    "years_of_experience": 12,
+    "responder_type": "Paramedic",
+    "capabilities": [
+      "Oxygen Administration",
+      "Basic First Aid",
+      "Oxygen Administration"
+    ],
+    "active_capabilities": [
+      "Oxygen Administration",
+      "Basic First Aid"
+    ],
+    "personal_equipment": [
+      "Radio",
+      "Helmet",
+      "Oxygen Kit"
+    ],
+    "primary_station_zone_id": "zone_b",
+    "coverage_zone_ids": [
+      "zone_b",
+      "zone_c",
+      "zone_d"
+    ],
+    "max_travel_radius_km": 15,
+    "flooded_conditions": false,
+    "fire_conditions": false,
+    "height_conditions": true,
+    "confined_space_conditions": true,
+    "availability_status": "available_now",
+    "shift_schedule": {
+      "shift_type": "on_call"
+    },
+    "notification_preference": "all_alerts",
+    "languages": [
+      "Spanish",
+      "English"
+    ],
+    "profile_data": {
+      "latitude": 41.86,
+      "longitude": -87.63000000000001,
+      "skills": [
+        "Oxygen Administration",
+        "Basic First Aid"
+      ],
+      "has_equipment": true,
+      "available": true,
+      "current_zone": "zone_b"
+    },
+    "status": "active"
+  },
+  {
+    "id": "34e95d0c-f1e6-50e5-b9eb-a42a2cc3ca3c",
+    "responder_id": "RSP-013",
+    "organization_id": "93ae520b-267f-573b-a953-791993502407",
+    "employee_id": "EMP-013",
+    "full_name": "Responder 13",
+    "role_title": "Firefighter",
+    "phone": "+13127771012",
+    "profile_photo_url": "",
+    "years_of_experience": 1,
+    "responder_type": "Firefighter",
+    "capabilities": [
+      "Fire Suppression",
+      "CPR",
+      "Trauma Support"
+    ],
+    "active_capabilities": [
+      "Fire Suppression",
+      "CPR"
+    ],
+    "personal_equipment": [
+      "Radio",
+      "Helmet"
+    ],
+    "primary_station_zone_id": "zone_c",
+    "coverage_zone_ids": [
+      "zone_c",
+      "zone_d",
+      "zone_e"
+    ],
+    "max_travel_radius_km": 20,
+    "flooded_conditions": true,
+    "fire_conditions": true,
+    "height_conditions": true,
+    "confined_space_conditions": false,
+    "availability_status": "busy",
+    "shift_schedule": {
+      "shift_type": "day"
+    },
+    "notification_preference": "all_alerts",
+    "languages": [
+      "Hindi",
+      "English"
+    ],
+    "profile_data": {
+      "latitude": 41.870000000000005,
+      "longitude": -87.63000000000001,
+      "skills": [
+        "Fire Suppression",
+        "CPR"
+      ],
+      "has_equipment": false,
+      "available": false,
+      "current_zone": "zone_c"
+    },
+    "status": "active"
+  },
+  {
+    "id": "069121fd-17ec-5541-b2af-9d572f5c1035",
+    "responder_id": "RSP-014",
+    "organization_id": "9f26a910-986a-56c1-a685-853f970c3568",
+    "employee_id": "EMP-014",
+    "full_name": "Responder 14",
+    "role_title": "Rescue Operator",
+    "phone": "+13127771013",
+    "profile_photo_url": "",
+    "years_of_experience": 2,
+    "responder_type": "Rescue Operator",
+    "capabilities": [
+      "Debris Search",
+      "Oxygen Administration",
+      "Fire Suppression"
+    ],
+    "active_capabilities": [
+      "Debris Search",
+      "Oxygen Administration"
+    ],
+    "personal_equipment": [
+      "Radio",
+      "Helmet",
+      "Oxygen Kit"
+    ],
+    "primary_station_zone_id": "zone_d",
+    "coverage_zone_ids": [
+      "zone_d",
+      "zone_e",
+      "zone_f"
+    ],
+    "max_travel_radius_km": 25,
+    "flooded_conditions": false,
+    "fire_conditions": false,
+    "height_conditions": false,
+    "confined_space_conditions": true,
+    "availability_status": "available_now",
+    "shift_schedule": {
+      "shift_type": "night"
+    },
+    "notification_preference": "all_alerts",
+    "languages": [
+      "Arabic",
+      "English"
+    ],
+    "profile_data": {
+      "latitude": 41.88,
+      "longitude": -87.63000000000001,
+      "skills": [
+        "Debris Search",
+        "Oxygen Administration"
+      ],
+      "has_equipment": true,
+      "available": true,
+      "current_zone": "zone_d"
+    },
+    "status": "active"
+  },
+  {
+    "id": "95783603-84bd-5c87-bf46-5780e081f61f",
+    "responder_id": "RSP-015",
+    "organization_id": "0167bb7b-64c9-5e0f-b369-27722e6f7004",
+    "employee_id": "EMP-015",
+    "full_name": "Responder 15",
+    "role_title": "Medical Staff",
+    "phone": "+13127771014",
+    "profile_photo_url": "",
+    "years_of_experience": 3,
+    "responder_type": "Medical Staff",
+    "capabilities": [
+      "Trauma Support",
+      "Trauma Support",
+      "Debris Search"
+    ],
+    "active_capabilities": [
+      "Trauma Support",
+      "Trauma Support"
+    ],
+    "personal_equipment": [
+      "Radio",
+      "Helmet",
+      "Oxygen Kit"
+    ],
+    "primary_station_zone_id": "zone_e",
+    "coverage_zone_ids": [
+      "zone_e",
+      "zone_f",
+      "zone_g"
+    ],
+    "max_travel_radius_km": 30,
+    "flooded_conditions": false,
+    "fire_conditions": true,
+    "height_conditions": false,
+    "confined_space_conditions": false,
+    "availability_status": "available_now",
+    "shift_schedule": {
+      "shift_type": "rotational"
+    },
+    "notification_preference": "all_alerts",
+    "languages": [
+      "Telugu",
+      "English"
+    ],
+    "profile_data": {
+      "latitude": 41.89,
+      "longitude": -87.63000000000001,
+      "skills": [
+        "Trauma Support",
+        "Trauma Support"
+      ],
+      "has_equipment": true,
+      "available": true,
+      "current_zone": "zone_e"
+    },
+    "status": "active"
+  },
+  {
+    "id": "3c0e8c95-f056-5291-b914-2dc896a7dfee",
+    "responder_id": "RSP-016",
+    "organization_id": "3d019ffd-911c-575f-ac5b-9974cd143000",
+    "employee_id": "EMP-016",
+    "full_name": "Responder 16",
+    "role_title": "Ambulance Driver",
+    "phone": "+13127771015",
+    "profile_photo_url": "",
+    "years_of_experience": 4,
+    "responder_type": "Ambulance Driver",
+    "capabilities": [
+      "Advanced Life Support",
+      "Fire Suppression",
+      "Rope Rescue"
+    ],
+    "active_capabilities": [
+      "Advanced Life Support",
+      "Fire Suppression"
+    ],
+    "personal_equipment": [
+      "Radio",
+      "Helmet",
+      "Oxygen Kit"
+    ],
+    "primary_station_zone_id": "zone_f",
+    "coverage_zone_ids": [
+      "zone_f",
+      "zone_g",
+      "zone_h"
+    ],
+    "max_travel_radius_km": 10,
+    "flooded_conditions": true,
+    "fire_conditions": false,
+    "height_conditions": false,
+    "confined_space_conditions": true,
+    "availability_status": "available_now",
+    "shift_schedule": {
+      "shift_type": "on_call"
+    },
+    "notification_preference": "all_alerts",
+    "languages": [
+      "English",
+      "English"
+    ],
+    "profile_data": {
+      "latitude": 41.9,
+      "longitude": -87.63000000000001,
+      "skills": [
+        "Advanced Life Support",
+        "Fire Suppression"
+      ],
+      "has_equipment": true,
+      "available": true,
+      "current_zone": "zone_f"
+    },
+    "status": "active"
+  },
+  {
+    "id": "4e24f62a-d568-5a5d-ad76-8a64d593e46d",
+    "responder_id": "RSP-017",
+    "organization_id": "cb52cfc4-af32-558d-8429-0f54a09508bf",
+    "employee_id": "EMP-017",
+    "full_name": "Responder 17",
+    "role_title": "Paramedic",
+    "phone": "+13127771016",
+    "profile_photo_url": "",
+    "years_of_experience": 5,
+    "responder_type": "Paramedic",
+    "capabilities": [
+      "Oxygen Administration",
+      "Debris Search",
+      "Shelter Operations"
+    ],
+    "active_capabilities": [
+      "Oxygen Administration",
+      "Debris Search"
+    ],
+    "personal_equipment": [
+      "Radio",
+      "Helmet"
+    ],
+    "primary_station_zone_id": "zone_g",
+    "coverage_zone_ids": [
+      "zone_g",
+      "zone_h",
+      "zone_i"
+    ],
+    "max_travel_radius_km": 15,
+    "flooded_conditions": false,
+    "fire_conditions": true,
+    "height_conditions": true,
+    "confined_space_conditions": false,
+    "availability_status": "available_now",
+    "shift_schedule": {
+      "shift_type": "day"
+    },
+    "notification_preference": "all_alerts",
+    "languages": [
+      "Spanish",
+      "English"
+    ],
+    "profile_data": {
+      "latitude": 41.910000000000004,
+      "longitude": -87.63000000000001,
+      "skills": [
+        "Oxygen Administration",
+        "Debris Search"
+      ],
+      "has_equipment": false,
+      "available": true,
+      "current_zone": "zone_g"
+    },
+    "status": "active"
+  },
+  {
+    "id": "d4026ddd-f676-5c5e-8c03-b2e3934b8637",
+    "responder_id": "RSP-018",
+    "organization_id": "2c22b6b8-6992-5aac-8f05-64edc78412f0",
+    "employee_id": "EMP-018",
+    "full_name": "Responder 18",
+    "role_title": "Firefighter",
+    "phone": "+13127771017",
+    "profile_photo_url": "",
+    "years_of_experience": 6,
+    "responder_type": "Firefighter",
+    "capabilities": [
+      "Fire Suppression",
+      "Rope Rescue",
+      "Supply Distribution"
+    ],
+    "active_capabilities": [
+      "Fire Suppression",
+      "Rope Rescue"
+    ],
+    "personal_equipment": [
+      "Radio",
+      "Helmet",
+      "Oxygen Kit"
+    ],
+    "primary_station_zone_id": "zone_h",
+    "coverage_zone_ids": [
+      "zone_h",
+      "zone_i",
+      "zone_j"
+    ],
+    "max_travel_radius_km": 20,
+    "flooded_conditions": false,
+    "fire_conditions": false,
+    "height_conditions": true,
+    "confined_space_conditions": true,
+    "availability_status": "available_now",
+    "shift_schedule": {
+      "shift_type": "night"
+    },
+    "notification_preference": "all_alerts",
+    "languages": [
+      "Hindi",
+      "English"
+    ],
+    "profile_data": {
+      "latitude": 41.92,
+      "longitude": -87.63000000000001,
+      "skills": [
+        "Fire Suppression",
+        "Rope Rescue"
+      ],
+      "has_equipment": true,
+      "available": true,
+      "current_zone": "zone_h"
+    },
+    "status": "active"
+  },
+  {
+    "id": "b9b96e47-ae2f-597c-99b3-3edca08e5590",
+    "responder_id": "RSP-019",
+    "organization_id": "93ae520b-267f-573b-a953-791993502407",
+    "employee_id": "EMP-019",
+    "full_name": "Responder 19",
+    "role_title": "Rescue Operator",
+    "phone": "+13127771018",
+    "profile_photo_url": "",
+    "years_of_experience": 7,
+    "responder_type": "Rescue Operator",
+    "capabilities": [
+      "Debris Search",
+      "Shelter Operations",
+      "Language Translation"
+    ],
+    "active_capabilities": [
+      "Debris Search",
+      "Shelter Operations"
+    ],
+    "personal_equipment": [
+      "Radio",
+      "Helmet",
+      "Oxygen Kit"
+    ],
+    "primary_station_zone_id": "zone_i",
+    "coverage_zone_ids": [
+      "zone_i",
+      "zone_j",
+      "zone_a"
+    ],
+    "max_travel_radius_km": 25,
+    "flooded_conditions": true,
+    "fire_conditions": true,
+    "height_conditions": false,
+    "confined_space_conditions": false,
+    "availability_status": "busy",
+    "shift_schedule": {
+      "shift_type": "rotational"
+    },
+    "notification_preference": "all_alerts",
+    "languages": [
+      "Arabic",
+      "English"
+    ],
+    "profile_data": {
+      "latitude": 41.93,
+      "longitude": -87.63000000000001,
+      "skills": [
+        "Debris Search",
+        "Shelter Operations"
+      ],
+      "has_equipment": true,
+      "available": false,
+      "current_zone": "zone_i"
+    },
+    "status": "active"
+  },
+  {
+    "id": "a82f1a92-3fcc-53e5-b642-b321d30edb11",
+    "responder_id": "RSP-020",
+    "organization_id": "9f26a910-986a-56c1-a685-853f970c3568",
+    "employee_id": "EMP-020",
+    "full_name": "Responder 20",
+    "role_title": "Medical Staff",
+    "phone": "+13127771019",
+    "profile_photo_url": "",
+    "years_of_experience": 8,
+    "responder_type": "Medical Staff",
+    "capabilities": [
+      "Trauma Support",
+      "Supply Distribution",
+      "Advanced Life Support"
+    ],
+    "active_capabilities": [
+      "Trauma Support",
+      "Supply Distribution"
+    ],
+    "personal_equipment": [
+      "Radio",
+      "Helmet",
+      "Oxygen Kit"
+    ],
+    "primary_station_zone_id": "zone_j",
+    "coverage_zone_ids": [
+      "zone_j",
+      "zone_a",
+      "zone_b"
+    ],
+    "max_travel_radius_km": 30,
+    "flooded_conditions": false,
+    "fire_conditions": false,
+    "height_conditions": false,
+    "confined_space_conditions": true,
+    "availability_status": "available_now",
+    "shift_schedule": {
+      "shift_type": "on_call"
+    },
+    "notification_preference": "all_alerts",
+    "languages": [
+      "Telugu",
+      "English"
+    ],
+    "profile_data": {
+      "latitude": 41.940000000000005,
+      "longitude": -87.63000000000001,
+      "skills": [
+        "Trauma Support",
+        "Supply Distribution"
+      ],
+      "has_equipment": true,
+      "available": true,
+      "current_zone": "zone_j"
+    },
+    "status": "active"
+  },
+  {
+    "id": "3f8ba111-80f9-5dbc-bdc4-5a3d2e1329c1",
+    "responder_id": "RSP-021",
+    "organization_id": "0167bb7b-64c9-5e0f-b369-27722e6f7004",
+    "employee_id": "EMP-021",
+    "full_name": "Responder 21",
+    "role_title": "Ambulance Driver",
+    "phone": "+13127771020",
+    "profile_photo_url": "",
+    "years_of_experience": 9,
+    "responder_type": "Ambulance Driver",
+    "capabilities": [
+      "Advanced Life Support",
+      "Language Translation",
+      "Basic First Aid"
+    ],
+    "active_capabilities": [
+      "Advanced Life Support",
+      "Language Translation"
+    ],
+    "personal_equipment": [
+      "Radio",
+      "Helmet"
+    ],
+    "primary_station_zone_id": "zone_a",
+    "coverage_zone_ids": [
+      "zone_a",
+      "zone_b",
+      "zone_c"
+    ],
+    "max_travel_radius_km": 10,
+    "flooded_conditions": false,
+    "fire_conditions": true,
+    "height_conditions": false,
+    "confined_space_conditions": false,
+    "availability_status": "available_now",
+    "shift_schedule": {
+      "shift_type": "day"
+    },
+    "notification_preference": "all_alerts",
+    "languages": [
+      "English",
+      "English"
+    ],
+    "profile_data": {
+      "latitude": 41.85,
+      "longitude": -87.61,
+      "skills": [
+        "Advanced Life Support",
+        "Language Translation"
+      ],
+      "has_equipment": false,
+      "available": true,
+      "current_zone": "zone_a"
+    },
+    "status": "active"
+  },
+  {
+    "id": "8735a42f-3c63-5a26-9c2b-56b34ba3346b",
+    "responder_id": "RSP-022",
+    "organization_id": "3d019ffd-911c-575f-ac5b-9974cd143000",
+    "employee_id": "EMP-022",
+    "full_name": "Responder 22",
+    "role_title": "Paramedic",
+    "phone": "+13127771021",
+    "profile_photo_url": "",
+    "years_of_experience": 10,
+    "responder_type": "Paramedic",
+    "capabilities": [
+      "Oxygen Administration",
+      "Advanced Life Support",
+      "CPR"
+    ],
+    "active_capabilities": [
+      "Oxygen Administration",
+      "Advanced Life Support"
+    ],
+    "personal_equipment": [
+      "Radio",
+      "Helmet",
+      "Oxygen Kit"
+    ],
+    "primary_station_zone_id": "zone_b",
+    "coverage_zone_ids": [
+      "zone_b",
+      "zone_c",
+      "zone_d"
+    ],
+    "max_travel_radius_km": 15,
+    "flooded_conditions": true,
+    "fire_conditions": false,
+    "height_conditions": true,
+    "confined_space_conditions": true,
+    "availability_status": "available_now",
+    "shift_schedule": {
+      "shift_type": "night"
+    },
+    "notification_preference": "all_alerts",
+    "languages": [
+      "Spanish",
+      "English"
+    ],
+    "profile_data": {
+      "latitude": 41.86,
+      "longitude": -87.61,
+      "skills": [
+        "Oxygen Administration",
+        "Advanced Life Support"
+      ],
+      "has_equipment": true,
+      "available": true,
+      "current_zone": "zone_b"
+    },
+    "status": "active"
+  },
+  {
+    "id": "b42b0948-7434-512a-b4e7-b930979188d7",
+    "responder_id": "RSP-023",
+    "organization_id": "cb52cfc4-af32-558d-8429-0f54a09508bf",
+    "employee_id": "EMP-023",
+    "full_name": "Responder 23",
+    "role_title": "Firefighter",
+    "phone": "+13127771022",
+    "profile_photo_url": "",
+    "years_of_experience": 11,
+    "responder_type": "Firefighter",
+    "capabilities": [
+      "Fire Suppression",
+      "Basic First Aid",
+      "Oxygen Administration"
+    ],
+    "active_capabilities": [
+      "Fire Suppression",
+      "Basic First Aid"
+    ],
+    "personal_equipment": [
+      "Radio",
+      "Helmet",
+      "Oxygen Kit"
+    ],
+    "primary_station_zone_id": "zone_c",
+    "coverage_zone_ids": [
+      "zone_c",
+      "zone_d",
+      "zone_e"
+    ],
+    "max_travel_radius_km": 20,
+    "flooded_conditions": false,
+    "fire_conditions": true,
+    "height_conditions": true,
+    "confined_space_conditions": false,
+    "availability_status": "available_now",
+    "shift_schedule": {
+      "shift_type": "rotational"
+    },
+    "notification_preference": "all_alerts",
+    "languages": [
+      "Hindi",
+      "English"
+    ],
+    "profile_data": {
+      "latitude": 41.870000000000005,
+      "longitude": -87.61,
+      "skills": [
+        "Fire Suppression",
+        "Basic First Aid"
+      ],
+      "has_equipment": true,
+      "available": true,
+      "current_zone": "zone_c"
+    },
+    "status": "active"
+  },
+  {
+    "id": "407c0bed-73f7-51c7-aeb7-cf48c90be197",
+    "responder_id": "RSP-024",
+    "organization_id": "2c22b6b8-6992-5aac-8f05-64edc78412f0",
+    "employee_id": "EMP-024",
+    "full_name": "Responder 24",
+    "role_title": "Rescue Operator",
+    "phone": "+13127771023",
+    "profile_photo_url": "",
+    "years_of_experience": 12,
+    "responder_type": "Rescue Operator",
+    "capabilities": [
+      "Debris Search",
+      "CPR",
+      "Trauma Support"
+    ],
+    "active_capabilities": [
+      "Debris Search",
+      "CPR"
+    ],
+    "personal_equipment": [
+      "Radio",
+      "Helmet",
+      "Oxygen Kit"
+    ],
+    "primary_station_zone_id": "zone_d",
+    "coverage_zone_ids": [
+      "zone_d",
+      "zone_e",
+      "zone_f"
+    ],
+    "max_travel_radius_km": 25,
+    "flooded_conditions": false,
+    "fire_conditions": false,
+    "height_conditions": false,
+    "confined_space_conditions": true,
+    "availability_status": "available_now",
+    "shift_schedule": {
+      "shift_type": "on_call"
+    },
+    "notification_preference": "all_alerts",
+    "languages": [
+      "Arabic",
+      "English"
+    ],
+    "profile_data": {
+      "latitude": 41.88,
+      "longitude": -87.61,
+      "skills": [
+        "Debris Search",
+        "CPR"
+      ],
+      "has_equipment": true,
+      "available": true,
+      "current_zone": "zone_d"
+    },
+    "status": "active"
+  },
+  {
+    "id": "7f871169-2ccc-5528-bb8c-8d6476201e16",
+    "responder_id": "RSP-025",
+    "organization_id": "93ae520b-267f-573b-a953-791993502407",
+    "employee_id": "EMP-025",
+    "full_name": "Responder 25",
+    "role_title": "Medical Staff",
+    "phone": "+13127771024",
+    "profile_photo_url": "",
+    "years_of_experience": 1,
+    "responder_type": "Medical Staff",
+    "capabilities": [
+      "Trauma Support",
+      "Oxygen Administration",
+      "Fire Suppression"
+    ],
+    "active_capabilities": [
+      "Trauma Support",
+      "Oxygen Administration"
+    ],
+    "personal_equipment": [
+      "Radio",
+      "Helmet"
+    ],
+    "primary_station_zone_id": "zone_e",
+    "coverage_zone_ids": [
+      "zone_e",
+      "zone_f",
+      "zone_g"
+    ],
+    "max_travel_radius_km": 30,
+    "flooded_conditions": true,
+    "fire_conditions": true,
+    "height_conditions": false,
+    "confined_space_conditions": false,
+    "availability_status": "busy",
+    "shift_schedule": {
+      "shift_type": "day"
+    },
+    "notification_preference": "all_alerts",
+    "languages": [
+      "Telugu",
+      "English"
+    ],
+    "profile_data": {
+      "latitude": 41.89,
+      "longitude": -87.61,
+      "skills": [
+        "Trauma Support",
+        "Oxygen Administration"
+      ],
+      "has_equipment": false,
+      "available": false,
+      "current_zone": "zone_e"
+    },
+    "status": "active"
+  }
+]

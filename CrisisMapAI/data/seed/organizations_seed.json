@@ -1,0 +1,158 @@
+[
+  {
+    "id": "93ae520b-267f-573b-a953-791993502407",
+    "organization_code": "ORG-MED-001",
+    "name": "Metro Ambulance Command",
+    "organization_type": "Ambulance Service",
+    "registration_number": "REG-MED-001",
+    "primary_contact_name": "Metro Ambulance Command Desk",
+    "primary_contact_phone": "+13125550100",
+    "primary_contact_email": "org-med-001@crisismap.local",
+    "headquarters_zone_id": "zone_a",
+    "coverage_zone_ids": [
+      "zone_a",
+      "zone_b"
+    ],
+    "years_of_operation": 5,
+    "operates_24_7": true,
+    "operating_hours": {
+      "start": "00:00",
+      "end": "23:59"
+    },
+    "verification_status": "approved",
+    "organization_code_active": true,
+    "profile_data": {
+      "seed_source": "seed_factory"
+    }
+  },
+  {
+    "id": "9f26a910-986a-56c1-a685-853f970c3568",
+    "organization_code": "ORG-FIR-002",
+    "name": "Lakefront Fire Operations",
+    "organization_type": "Fire Department",
+    "registration_number": "REG-FIR-002",
+    "primary_contact_name": "Lakefront Fire Operations Desk",
+    "primary_contact_phone": "+13125550101",
+    "primary_contact_email": "org-fir-002@crisismap.local",
+    "headquarters_zone_id": "zone_b",
+    "coverage_zone_ids": [
+      "zone_b",
+      "zone_c"
+    ],
+    "years_of_operation": 8,
+    "operates_24_7": true,
+    "operating_hours": {
+      "start": "00:00",
+      "end": "23:59"
+    },
+    "verification_status": "approved",
+    "organization_code_active": true,
+    "profile_data": {
+      "seed_source": "seed_factory"
+    }
+  },
+  {
+    "id": "0167bb7b-64c9-5e0f-b369-27722e6f7004",
+    "organization_code": "ORG-SAR-003",
+    "name": "Urban Search Rescue Group",
+    "organization_type": "Search & Rescue",
+    "registration_number": "REG-SAR-003",
+    "primary_contact_name": "Urban Search Rescue Group Desk",
+    "primary_contact_phone": "+13125550102",
+    "primary_contact_email": "org-sar-003@crisismap.local",
+    "headquarters_zone_id": "zone_c",
+    "coverage_zone_ids": [
+      "zone_c",
+      "zone_d"
+    ],
+    "years_of_operation": 11,
+    "operates_24_7": true,
+    "operating_hours": {
+      "start": "00:00",
+      "end": "23:59"
+    },
+    "verification_status": "approved",
+    "organization_code_active": true,
+    "profile_data": {
+      "seed_source": "seed_factory"
+    }
+  },
+  {
+    "id": "3d019ffd-911c-575f-ac5b-9974cd143000",
+    "organization_code": "ORG-HOS-004",
+    "name": "Regional Emergency Medicine",
+    "organization_type": "Hospital Emergency Unit",
+    "registration_number": "REG-HOS-004",
+    "primary_contact_name": "Regional Emergency Medicine Desk",
+    "primary_contact_phone": "+13125550103",
+    "primary_contact_email": "org-hos-004@crisismap.local",
+    "headquarters_zone_id": "zone_d",
+    "coverage_zone_ids": [
+      "zone_d",
+      "zone_e"
+    ],
+    "years_of_operation": 14,
+    "operates_24_7": true,
+    "operating_hours": {
+      "start": "00:00",
+      "end": "23:59"
+    },
+    "verification_status": "approved",
+    "organization_code_active": true,
+    "profile_data": {
+      "seed_source": "seed_factory"
+    }
+  },
+  {
+    "id": "cb52cfc4-af32-558d-8429-0f54a09508bf",
+    "organization_code": "ORG-NGO-005",
+    "name": "Community Relief Network",
+    "organization_type": "NGO / Volunteer Organization",
+    "registration_number": "REG-NGO-005",
+    "primary_contact_name": "Community Relief Network Desk",
+    "primary_contact_phone": "+13125550104",
+    "primary_contact_email": "org-ngo-005@crisismap.local",
+    "headquarters_zone_id": "zone_e",
+    "coverage_zone_ids": [
+      "zone_e",
+      "zone_f"
+    ],
+    "years_of_operation": 17,
+    "operates_24_7": true,
+    "operating_hours": {
+      "start": "00:00",
+      "end": "23:59"
+    },
+    "verification_status": "approved",
+    "organization_code_active": true,
+    "profile_data": {
+      "seed_source": "seed_factory"
+    }
+  },
+  {
+    "id": "2c22b6b8-6992-5aac-8f05-64edc78412f0",
+    "organization_code": "ORG-DIS-006",
+    "name": "State Disaster Response Cell",
+    "organization_type": "Disaster Relief Unit",
+    "registration_number": "REG-DIS-006",
+    "primary_contact_name": "State Disaster Response Cell Desk",
+    "primary_contact_phone": "+13125550105",
+    "primary_contact_email": "org-dis-006@crisismap.local",
+    "headquarters_zone_id": "zone_f",
+    "coverage_zone_ids": [
+      "zone_f",
+      "zone_g"
+    ],
+    "years_of_operation": 20,
+    "operates_24_7": true,
+    "operating_hours": {
+      "start": "00:00",
+      "end": "23:59"
+    },
+    "verification_status": "approved",
+    "organization_code_active": true,
+    "profile_data": {
+      "seed_source": "seed_factory"
+    }
+  }
+]

@@ -1,0 +1,482 @@
+[
+  {
+    "road_id": "road_zone_a_zone_b",
+    "source_zone": "zone_a",
+    "target_zone": "zone_b",
+    "travel_time": 7.4,
+    "safe": true,
+    "congestion": 1.05,
+    "has_oxygen": true,
+    "distance_km": 6.2,
+    "capacity": 210,
+    "passable": true,
+    "blocked": false,
+    "profile_data": {
+      "road_type": "h"
+    }
+  },
+  {
+    "road_id": "road_zone_a_zone_f",
+    "source_zone": "zone_a",
+    "target_zone": "zone_f",
+    "travel_time": 19.5,
+    "safe": true,
+    "congestion": 1.05,
+    "has_oxygen": true,
+    "distance_km": 13.0,
+    "capacity": 180,
+    "passable": true,
+    "blocked": false,
+    "profile_data": {
+      "road_type": "d"
+    }
+  },
+  {
+    "road_id": "road_zone_b_zone_c",
+    "source_zone": "zone_b",
+    "target_zone": "zone_c",
+    "travel_time": 7.4,
+    "safe": true,
+    "congestion": 1.35,
+    "has_oxygen": false,
+    "distance_km": 6.2,
+    "capacity": 270,
+    "passable": true,
+    "blocked": false,
+    "profile_data": {
+      "road_type": "h"
+    }
+  },
+  {
+    "road_id": "road_zone_b_zone_g",
+    "source_zone": "zone_b",
+    "target_zone": "zone_g",
+    "travel_time": 15.6,
+    "safe": false,
+    "congestion": 1.35,
+    "has_oxygen": true,
+    "distance_km": 13.0,
+    "capacity": 240,
+    "passable": true,
+    "blocked": false,
+    "profile_data": {
+      "road_type": "x"
+    }
+  },
+  {
+    "road_id": "road_zone_c_zone_d",
+    "source_zone": "zone_c",
+    "target_zone": "zone_d",
+    "travel_time": 7.4,
+    "safe": true,
+    "congestion": 1.05,
+    "has_oxygen": true,
+    "distance_km": 6.2,
+    "capacity": 180,
+    "passable": true,
+    "blocked": false,
+    "profile_data": {
+      "road_type": "h"
+    }
+  },
+  {
+    "road_id": "road_zone_c_zone_h",
+    "source_zone": "zone_c",
+    "target_zone": "zone_h",
+    "travel_time": 15.6,
+    "safe": true,
+    "congestion": 1.05,
+    "has_oxygen": false,
+    "distance_km": 13.0,
+    "capacity": 300,
+    "passable": true,
+    "blocked": false,
+    "profile_data": {
+      "road_type": "v"
+    }
+  },
+  {
+    "road_id": "road_zone_d_zone_e",
+    "source_zone": "zone_d",
+    "target_zone": "zone_e",
+    "travel_time": 7.4,
+    "safe": false,
+    "congestion": 1.35,
+    "has_oxygen": true,
+    "distance_km": 6.2,
+    "capacity": 240,
+    "passable": true,
+    "blocked": false,
+    "profile_data": {
+      "road_type": "h"
+    }
+  },
+  {
+    "road_id": "road_zone_d_zone_i",
+    "source_zone": "zone_d",
+    "target_zone": "zone_i",
+    "travel_time": 15.6,
+    "safe": true,
+    "congestion": 1.35,
+    "has_oxygen": true,
+    "distance_km": 13.0,
+    "capacity": 210,
+    "passable": true,
+    "blocked": true,
+    "profile_data": {
+      "road_type": "x"
+    }
+  },
+  {
+    "road_id": "road_zone_e_zone_j",
+    "source_zone": "zone_e",
+    "target_zone": "zone_j",
+    "travel_time": 19.5,
+    "safe": true,
+    "congestion": 1.05,
+    "has_oxygen": true,
+    "distance_km": 13.0,
+    "capacity": 270,
+    "passable": true,
+    "blocked": false,
+    "profile_data": {
+      "road_type": "d"
+    }
+  },
+  {
+    "road_id": "road_zone_f_zone_g",
+    "source_zone": "zone_f",
+    "target_zone": "zone_g",
+    "travel_time": 7.4,
+    "safe": true,
+    "congestion": 1.35,
+    "has_oxygen": true,
+    "distance_km": 6.2,
+    "capacity": 210,
+    "passable": true,
+    "blocked": true,
+    "profile_data": {
+      "road_type": "h"
+    }
+  },
+  {
+    "road_id": "road_zone_g_zone_h",
+    "source_zone": "zone_g",
+    "target_zone": "zone_h",
+    "travel_time": 7.4,
+    "safe": true,
+    "congestion": 1.05,
+    "has_oxygen": true,
+    "distance_km": 6.2,
+    "capacity": 270,
+    "passable": true,
+    "blocked": false,
+    "profile_data": {
+      "road_type": "h"
+    }
+  },
+  {
+    "road_id": "road_zone_h_zone_i",
+    "source_zone": "zone_h",
+    "target_zone": "zone_i",
+    "travel_time": 7.4,
+    "safe": true,
+    "congestion": 1.35,
+    "has_oxygen": false,
+    "distance_km": 6.2,
+    "capacity": 180,
+    "passable": true,
+    "blocked": false,
+    "profile_data": {
+      "road_type": "h"
+    }
+  },
+  {
+    "road_id": "road_zone_i_zone_j",
+    "source_zone": "zone_i",
+    "target_zone": "zone_j",
+    "travel_time": 7.4,
+    "safe": true,
+    "congestion": 1.05,
+    "has_oxygen": true,
+    "distance_km": 6.2,
+    "capacity": 240,
+    "passable": true,
+    "blocked": false,
+    "profile_data": {
+      "road_type": "h"
+    }
+  },
+  {
+    "road_id": "road_zone_a_zone_g",
+    "source_zone": "zone_a",
+    "target_zone": "zone_g",
+    "travel_time": 22.0,
+    "safe": true,
+    "congestion": 1.2,
+    "has_oxygen": false,
+    "distance_km": 14.7,
+    "capacity": 210,
+    "passable": false,
+    "blocked": false,
+    "profile_data": {
+      "road_type": "d"
+    }
+  },
+  {
+    "road_id": "road_zone_b_zone_h",
+    "source_zone": "zone_b",
+    "target_zone": "zone_h",
+    "travel_time": 22.0,
+    "safe": true,
+    "congestion": 0.9,
+    "has_oxygen": true,
+    "distance_km": 14.7,
+    "capacity": 270,
+    "passable": true,
+    "blocked": false,
+    "profile_data": {
+      "road_type": "d"
+    }
+  },
+  {
+    "road_id": "road_zone_c_zone_i",
+    "source_zone": "zone_c",
+    "target_zone": "zone_i",
+    "travel_time": 22.0,
+    "safe": true,
+    "congestion": 1.2,
+    "has_oxygen": true,
+    "distance_km": 14.7,
+    "capacity": 180,
+    "passable": true,
+    "blocked": false,
+    "profile_data": {
+      "road_type": "d"
+    }
+  },
+  {
+    "road_id": "road_zone_d_zone_j",
+    "source_zone": "zone_d",
+    "target_zone": "zone_j",
+    "travel_time": 22.0,
+    "safe": true,
+    "congestion": 0.9,
+    "has_oxygen": false,
+    "distance_km": 14.7,
+    "capacity": 240,
+    "passable": false,
+    "blocked": false,
+    "profile_data": {
+      "road_type": "d"
+    }
+  },
+  {
+    "road_id": "road_zone_f_zone_b",
+    "source_zone": "zone_f",
+    "target_zone": "zone_b",
+    "travel_time": 17.0,
+    "safe": true,
+    "congestion": 1.2,
+    "has_oxygen": false,
+    "distance_km": 11.3,
+    "capacity": 210,
+    "passable": false,
+    "blocked": false,
+    "profile_data": {
+      "road_type": "d"
+    }
+  },
+  {
+    "road_id": "road_zone_g_zone_c",
+    "source_zone": "zone_g",
+    "target_zone": "zone_c",
+    "travel_time": 17.0,
+    "safe": true,
+    "congestion": 0.9,
+    "has_oxygen": true,
+    "distance_km": 11.3,
+    "capacity": 270,
+    "passable": true,
+    "blocked": false,
+    "profile_data": {
+      "road_type": "d"
+    }
+  },
+  {
+    "road_id": "road_zone_h_zone_d",
+    "source_zone": "zone_h",
+    "target_zone": "zone_d",
+    "travel_time": 17.0,
+    "safe": true,
+    "congestion": 1.2,
+    "has_oxygen": true,
+    "distance_km": 11.3,
+    "capacity": 180,
+    "passable": true,
+    "blocked": false,
+    "profile_data": {
+      "road_type": "d"
+    }
+  },
+  {
+    "road_id": "road_zone_i_zone_e",
+    "source_zone": "zone_i",
+    "target_zone": "zone_e",
+    "travel_time": 17.0,
+    "safe": true,
+    "congestion": 0.9,
+    "has_oxygen": false,
+    "distance_km": 11.3,
+    "capacity": 240,
+    "passable": false,
+    "blocked": false,
+    "profile_data": {
+      "road_type": "d"
+    }
+  },
+  {
+    "road_id": "road_zone_a_zone_c",
+    "source_zone": "zone_a",
+    "target_zone": "zone_c",
+    "travel_time": 9.5,
+    "safe": true,
+    "congestion": 1.2,
+    "has_oxygen": true,
+    "distance_km": 7.9,
+    "capacity": 240,
+    "passable": true,
+    "blocked": false,
+    "profile_data": {
+      "road_type": "x"
+    }
+  },
+  {
+    "road_id": "road_zone_c_zone_e",
+    "source_zone": "zone_c",
+    "target_zone": "zone_e",
+    "travel_time": 9.5,
+    "safe": true,
+    "congestion": 1.2,
+    "has_oxygen": false,
+    "distance_km": 7.9,
+    "capacity": 210,
+    "passable": false,
+    "blocked": false,
+    "profile_data": {
+      "road_type": "x"
+    }
+  },
+  {
+    "road_id": "road_zone_f_zone_h",
+    "source_zone": "zone_f",
+    "target_zone": "zone_h",
+    "travel_time": 9.5,
+    "safe": true,
+    "congestion": 0.9,
+    "has_oxygen": false,
+    "distance_km": 7.9,
+    "capacity": 240,
+    "passable": false,
+    "blocked": false,
+    "profile_data": {
+      "road_type": "x"
+    }
+  },
+  {
+    "road_id": "road_zone_h_zone_j",
+    "source_zone": "zone_h",
+    "target_zone": "zone_j",
+    "travel_time": 9.5,
+    "safe": true,
+    "congestion": 0.9,
+    "has_oxygen": true,
+    "distance_km": 7.9,
+    "capacity": 210,
+    "passable": true,
+    "blocked": false,
+    "profile_data": {
+      "road_type": "x"
+    }
+  },
+  {
+    "road_id": "road_zone_a_zone_h",
+    "source_zone": "zone_a",
+    "target_zone": "zone_h",
+    "travel_time": 19.7,
+    "safe": false,
+    "congestion": 1.35,
+    "has_oxygen": true,
+    "distance_km": 16.4,
+    "capacity": 240,
+    "passable": true,
+    "blocked": false,
+    "profile_data": {
+      "road_type": "x"
+    }
+  },
+  {
+    "road_id": "road_zone_c_zone_j",
+    "source_zone": "zone_c",
+    "target_zone": "zone_j",
+    "travel_time": 19.7,
+    "safe": true,
+    "congestion": 1.35,
+    "has_oxygen": true,
+    "distance_km": 16.4,
+    "capacity": 210,
+    "passable": true,
+    "blocked": true,
+    "profile_data": {
+      "road_type": "x"
+    }
+  },
+  {
+    "road_id": "road_zone_f_zone_c",
+    "source_zone": "zone_f",
+    "target_zone": "zone_c",
+    "travel_time": 11.5,
+    "safe": false,
+    "congestion": 1.35,
+    "has_oxygen": true,
+    "distance_km": 9.6,
+    "capacity": 240,
+    "passable": true,
+    "blocked": false,
+    "profile_data": {
+      "road_type": "x"
+    }
+  },
+  {
+    "road_id": "road_zone_g_zone_j",
+    "source_zone": "zone_g",
+    "target_zone": "zone_j",
+    "travel_time": 11.5,
+    "safe": true,
+    "congestion": 1.35,
+    "has_oxygen": false,
+    "distance_km": 9.6,
+    "capacity": 180,
+    "passable": true,
+    "blocked": false,
+    "profile_data": {
+      "road_type": "x"
+    }
+  },
+  {
+    "road_id": "road_zone_b_zone_i",
+    "source_zone": "zone_b",
+    "target_zone": "zone_i",
+    "travel_time": 19.7,
+    "safe": true,
+    "congestion": 1.05,
+    "has_oxygen": false,
+    "distance_km": 16.4,
+    "capacity": 300,
+    "passable": true,
+    "blocked": false,
+    "profile_data": {
+      "road_type": "x"
+    }
+  }
+]

@@ -1,0 +1,222 @@
+[
+  {
+    "task_id": "TASK-001",
+    "zone_id": "zone_a",
+    "required_skill": "Trauma Support",
+    "required_language": "English",
+    "latitude": 41.85,
+    "longitude": -87.65,
+    "profile_data": {
+      "priority_band": "critical"
+    }
+  },
+  {
+    "task_id": "TASK-002",
+    "zone_id": "zone_b",
+    "required_skill": "Fire Suppression",
+    "required_language": "Spanish",
+    "latitude": 41.857,
+    "longitude": -87.65,
+    "profile_data": {
+      "priority_band": "high"
+    }
+  },
+  {
+    "task_id": "TASK-003",
+    "zone_id": "zone_c",
+    "required_skill": "Debris Search",
+    "required_language": "Hindi",
+    "latitude": 41.864000000000004,
+    "longitude": -87.65,
+    "profile_data": {
+      "priority_band": "medium"
+    }
+  },
+  {
+    "task_id": "TASK-004",
+    "zone_id": "zone_d",
+    "required_skill": "Rope Rescue",
+    "required_language": "Arabic",
+    "latitude": 41.871,
+    "longitude": -87.65,
+    "profile_data": {
+      "priority_band": "low"
+    }
+  },
+  {
+    "task_id": "TASK-005",
+    "zone_id": "zone_e",
+    "required_skill": "Shelter Operations",
+    "required_language": "Telugu",
+    "latitude": 41.878,
+    "longitude": -87.65,
+    "profile_data": {
+      "priority_band": "critical"
+    }
+  },
+  {
+    "task_id": "TASK-006",
+    "zone_id": "zone_f",
+    "required_skill": "Supply Distribution",
+    "required_language": "English",
+    "latitude": 41.885,
+    "longitude": -87.65,
+    "profile_data": {
+      "priority_band": "high"
+    }
+  },
+  {
+    "task_id": "TASK-007",
+    "zone_id": "zone_g",
+    "required_skill": "Language Translation",
+    "required_language": "Spanish",
+    "latitude": 41.892,
+    "longitude": -87.65,
+    "profile_data": {
+      "priority_band": "medium"
+    }
+  },
+  {
+    "task_id": "TASK-008",
+    "zone_id": "zone_h",
+    "required_skill": "Advanced Life Support",
+    "required_language": "Hindi",
+    "latitude": 41.899,
+    "longitude": -87.65,
+    "profile_data": {
+      "priority_band": "low"
+    }
+  },
+  {
+    "task_id": "TASK-009",
+    "zone_id": "zone_i",
+    "required_skill": "Basic First Aid",
+    "required_language": "Arabic",
+    "latitude": 41.906,
+    "longitude": -87.65,
+    "profile_data": {
+      "priority_band": "critical"
+    }
+  },
+  {
+    "task_id": "TASK-010",
+    "zone_id": "zone_j",
+    "required_skill": "CPR",
+    "required_language": "Telugu",
+    "latitude": 41.913000000000004,
+    "longitude": -87.65,
+    "profile_data": {
+      "priority_band": "high"
+    }
+  },
+  {
+    "task_id": "TASK-011",
+    "zone_id": "zone_a",
+    "required_skill": "Oxygen Administration",
+    "required_language": "English",
+    "latitude": 41.85,
+    "longitude": -87.63900000000001,
+    "profile_data": {
+      "priority_band": "medium"
+    }
+  },
+  {
+    "task_id": "TASK-012",
+    "zone_id": "zone_b",
+    "required_skill": "Trauma Support",
+    "required_language": "Spanish",
+    "latitude": 41.857,
+    "longitude": -87.63900000000001,
+    "profile_data": {
+      "priority_band": "low"
+    }
+  },
+  {
+    "task_id": "TASK-013",
+    "zone_id": "zone_c",
+    "required_skill": "Fire Suppression",
+    "required_language": "Hindi",
+    "latitude": 41.864000000000004,
+    "longitude": -87.63900000000001,
+    "profile_data": {
+      "priority_band": "critical"
+    }
+  },
+  {
+    "task_id": "TASK-014",
+    "zone_id": "zone_d",
+    "required_skill": "Debris Search",
+    "required_language": "Arabic",
+    "latitude": 41.871,
+    "longitude": -87.63900000000001,
+    "profile_data": {
+      "priority_band": "high"
+    }
+  },
+  {
+    "task_id": "TASK-015",
+    "zone_id": "zone_e",
+    "required_skill": "Rope Rescue",
+    "required_language": "Telugu",
+    "latitude": 41.878,
+    "longitude": -87.63900000000001,
+    "profile_data": {
+      "priority_band": "medium"
+    }
+  },
+  {
+    "task_id": "TASK-016",
+    "zone_id": "zone_f",
+    "required_skill": "Shelter Operations",
+    "required_language": "English",
+    "latitude": 41.885,
+    "longitude": -87.63900000000001,
+    "profile_data": {
+      "priority_band": "low"
+    }
+  },
+  {
+    "task_id": "TASK-017",
+    "zone_id": "zone_g",
+    "required_skill": "Supply Distribution",
+    "required_language": "Spanish",
+    "latitude": 41.892,
+    "longitude": -87.63900000000001,
+    "profile_data": {
+      "priority_band": "critical"
+    }
+  },
+  {
+    "task_id": "TASK-018",
+    "zone_id": "zone_h",
+    "required_skill": "Language Translation",
+    "required_language": "Hindi",
+    "latitude": 41.899,
+    "longitude": -87.63900000000001,
+    "profile_data": {
+      "priority_band": "high"
+    }
+  },
+  {
+    "task_id": "TASK-019",
+    "zone_id": "zone_i",
+    "required_skill": "Advanced Life Support",
+    "required_language": "Arabic",
+    "latitude": 41.906,
+    "longitude": -87.63900000000001,
+    "profile_data": {
+      "priority_band": "medium"
+    }
+  },
+  {
+    "task_id": "TASK-020",
+    "zone_id": "zone_j",
+    "required_skill": "Basic First Aid",
+    "required_language": "Telugu",
+    "latitude": 41.913000000000004,
+    "longitude": -87.63900000000001,
+    "profile_data": {
+      "priority_band": "low"
+    }
+  }
+]

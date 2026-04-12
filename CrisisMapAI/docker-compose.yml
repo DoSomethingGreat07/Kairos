@@ -1,0 +1,17 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: crisismap-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: crisismap
+      POSTGRES_USER: crisismap
+      POSTGRES_PASSWORD: crisismap
+    ports:
+      - "5433:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./sql/init:/docker-entrypoint-initdb.d
+
+volumes:
+  postgres_data:

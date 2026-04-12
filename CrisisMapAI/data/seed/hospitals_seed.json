@@ -1,0 +1,98 @@
+[
+  {
+    "hospital_id": "HOS-001",
+    "name": "Zone A Emergency Hospital",
+    "zone_id": "zone_a",
+    "available_beds": 20,
+    "total_beds": 80,
+    "latitude": 41.85,
+    "longitude": -87.65,
+    "profile_data": {
+      "trauma_center": true
+    }
+  },
+  {
+    "hospital_id": "HOS-002",
+    "name": "Zone B Emergency Hospital",
+    "zone_id": "zone_b",
+    "available_beds": 27,
+    "total_beds": 95,
+    "latitude": 41.862,
+    "longitude": -87.641,
+    "profile_data": {
+      "trauma_center": false
+    }
+  },
+  {
+    "hospital_id": "HOS-003",
+    "name": "Zone C Emergency Hospital",
+    "zone_id": "zone_c",
+    "available_beds": 34,
+    "total_beds": 110,
+    "latitude": 41.874,
+    "longitude": -87.632,
+    "profile_data": {
+      "trauma_center": true
+    }
+  },
+  {
+    "hospital_id": "HOS-004",
+    "name": "Zone D Emergency Hospital",
+    "zone_id": "zone_d",
+    "available_beds": 41,
+    "total_beds": 125,
+    "latitude": 41.886,
+    "longitude": -87.623,
+    "profile_data": {
+      "trauma_center": false
+    }
+  },
+  {
+    "hospital_id": "HOS-005",
+    "name": "Zone E Emergency Hospital",
+    "zone_id": "zone_e",
+    "available_beds": 48,
+    "total_beds": 140,
+    "latitude": 41.898,
+    "longitude": -87.614,
+    "profile_data": {
+      "trauma_center": true
+    }
+  },
+  {
+    "hospital_id": "HOS-006",
+    "name": "Zone F Emergency Hospital",
+    "zone_id": "zone_f",
+    "available_beds": 55,
+    "total_beds": 155,
+    "latitude": 41.910000000000004,
+    "longitude": -87.605,
+    "profile_data": {
+      "trauma_center": false
+    }
+  },
+  {
+    "hospital_id": "HOS-007",
+    "name": "Zone G Emergency Hospital",
+    "zone_id": "zone_g",
+    "available_beds": 62,
+    "total_beds": 170,
+    "latitude": 41.922000000000004,
+    "longitude": -87.596,
+    "profile_data": {
+      "trauma_center": true
+    }
+  },
+  {
+    "hospital_id": "HOS-008",
+    "name": "Zone H Emergency Hospital",
+    "zone_id": "zone_h",
+    "available_beds": 69,
+    "total_beds": 185,
+    "latitude": 41.934000000000005,
+    "longitude": -87.587,
+    "profile_data": {
+      "trauma_center": false
+    }
+  }
+]
