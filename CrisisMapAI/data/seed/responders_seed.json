@@ -7,7 +7,7 @@
     "full_name": "Responder 1",
     "role_title": "Ambulance Driver",
     "phone": "+13127771000",
-    "profile_photo_url": "",
+    "profile_photo_url": "https://ui-avatars.com/api/?name=Responder&background=random&size=128",
     "years_of_experience": 1,
     "responder_type": "Ambulance Driver",
     "capabilities": [
