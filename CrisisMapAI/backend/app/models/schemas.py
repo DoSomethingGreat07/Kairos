@@ -283,7 +283,7 @@ class SOSRequest(BaseModel):
         if self.access.road_status == "blocked":
             critical_needs.append("blocked road access")
 
-        return {
+        incident = {
             "id": sos_id,
             "incident_id": self.incident_id or sos_id,
             "disaster_type": self.disaster_type,
@@ -311,6 +311,10 @@ class SOSRequest(BaseModel):
             "created_at": timestamp,
             "status": "received",
         }
+        extra_fields = getattr(self, "__pydantic_extra__", {}) or {}
+        if "registered_victim_profile" in extra_fields:
+            incident["registered_victim_profile"] = extra_fields["registered_victim_profile"]
+        return incident
 
 
 class SOSResponse(BaseModel):

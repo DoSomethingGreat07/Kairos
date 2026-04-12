@@ -116,6 +116,75 @@ def test_gale_shapley_matches_best_available_volunteer():
     assert matches[0]["current_location"]["zone_id"] == "zone_a"
 
 
+def test_gale_shapley_respects_zone_coverage_radius_and_victim_preferences():
+    matcher = VolunteerMatching(
+        volunteers=[
+            {
+                "id": "v1",
+                "name": "Aligned",
+                "skills": ["Supply Distribution"],
+                "languages": ["English"],
+                "available": True,
+                "latitude": 40.7128,
+                "longitude": -74.0060,
+                "current_latitude": 40.7130,
+                "current_longitude": -74.0061,
+                "current_zone_id": "zone_a",
+                "coverage_zones": ["zone_a", "zone_c"],
+                "max_travel_radius_km": 5,
+            },
+            {
+                "id": "v2",
+                "name": "Wrong Zone",
+                "skills": ["Supply Distribution"],
+                "languages": ["English"],
+                "available": True,
+                "latitude": 40.7131,
+                "longitude": -74.0062,
+                "current_latitude": 40.7131,
+                "current_longitude": -74.0062,
+                "current_zone_id": "zone_b",
+                "coverage_zones": ["zone_b"],
+                "max_travel_radius_km": 5,
+                "outside_zone_allowed": False,
+            },
+            {
+                "id": "v3",
+                "name": "Too Far",
+                "skills": ["Supply Distribution"],
+                "languages": ["English"],
+                "available": True,
+                "latitude": 40.7800,
+                "longitude": -73.9600,
+                "current_latitude": 40.7800,
+                "current_longitude": -73.9600,
+                "current_zone_id": "zone_a",
+                "coverage_zones": ["zone_a"],
+                "max_travel_radius_km": 1,
+            },
+        ]
+    )
+
+    matches = matcher.match_volunteers(
+        {
+            "id": "sos-eligible",
+            "zone": "zone_a",
+            "latitude": 40.7130,
+            "longitude": -74.0062,
+            "required_skill": "Supply Distribution",
+            "contact": {"language": "English"},
+            "registered_victim_profile": {
+                "home_zone": "zone_a",
+                "frequent_zones": ["zone_c"],
+            },
+        }
+    )
+
+    assert len(matches) == 1
+    assert matches[0]["volunteer_id"] == "v1"
+    assert "zone alignment" in matches[0]["rationale"]
+
+
 def test_hungarian_assignment_respects_dispatch_type_filter():
     assignment = ResponderAssignment(
         responders=[

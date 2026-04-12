@@ -51,6 +51,7 @@ class GraphWriter:
         # Prepare incident data for Neo4j
         sos_data = {
             "id": incident["id"],
+            "sos_id": incident.get("sos_id", incident.get("id")),
             "zone": zone_id,
             "disaster_type": incident.get("disaster_type", "unknown"),
             "severity": incident.get("severity", "medium"),

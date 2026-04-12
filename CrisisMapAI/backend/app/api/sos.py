@@ -50,6 +50,7 @@ def apply_victim_profile_defaults(sos_payload: dict) -> dict:
     profile_data = victim_profile.get("profile_data") or {}
     medical_profile = profile_data.get("medical_profile") or {}
     household_profile = profile_data.get("household_profile") or {}
+    location_profile = profile_data.get("location_profile") or {}
     consent_preferences = profile_data.get("consent_preferences") or {}
     emergency_contacts = profile_data.get("emergency_contacts") or {}
     identity = profile_data.get("identity") or {}
@@ -90,6 +91,9 @@ def apply_victim_profile_defaults(sos_payload: dict) -> dict:
     enriched["registered_victim_profile"] = {
         "victim_profile_id": victim_profile.get("id"),
         "preferred_language": enriched["contact"].get("language"),
+        "home_zone": location_profile.get("home_zone"),
+        "work_zone": location_profile.get("work_zone"),
+        "frequent_zones": location_profile.get("frequent_zones", []),
         "share_location_with_responders": consent_preferences.get("share_location_with_responders"),
         "emergency_contacts": emergency_contacts,
     }
@@ -357,26 +361,94 @@ def persist_supply_result(sos_id: str, result: dict) -> None:
     except Exception:
         pass
 
+
+def _extract_result_payload(row: dict | None) -> dict:
+    if not row:
+        return {}
+    payload = row.get("result_payload")
+    return payload if isinstance(payload, dict) else {}
+
+
+def build_incident_tracking_payload(replay: dict) -> dict | None:
+    incident_row = replay.get("incident")
+    if not incident_row:
+        return None
+
+    incident = dict(incident_row.get("incident_data") or {})
+    results = replay.get("results") or {}
+    stages = replay.get("stages") or []
+
+    priority_result = results.get("priority_queue") or {}
+    bayesian_result = results.get("bayesian_severity") or {}
+    dijkstra_result = results.get("dijkstra") or {}
+    yen_result = results.get("yen_routes") or {}
+    assignment_result = results.get("hungarian_assignment") or {}
+    volunteer_result = results.get("gale_shapley") or {}
+    min_cost_result = results.get("min_cost_flow") or {}
+
+    incident["sos_id"] = incident.get("sos_id") or incident_row.get("sos_id")
+    incident["id"] = incident.get("id") or incident["sos_id"]
+    incident["zone"] = incident.get("zone") or incident_row.get("zone_id")
+    incident["severity"] = incident.get("severity") or incident_row.get("severity")
+    incident["priority_score"] = incident.get("priority_score", incident_row.get("priority_score"))
+    incident["inferred_severity"] = incident.get("inferred_severity", incident_row.get("inferred_severity"))
+    assignment_payload = _extract_result_payload(assignment_result)
+    dijkstra_payload = _extract_result_payload(dijkstra_result)
+    if assignment_payload.get("status"):
+        incident["status"] = assignment_payload.get("status")
+    else:
+        incident["status"] = incident.get("status") or "received"
+    incident["assignment"] = incident.get("assignment") or assignment_payload
+    incident["eta"] = incident.get("eta") or assignment_payload.get("eta") or dijkstra_payload.get("eta")
+    incident["responder"] = (
+        incident.get("responder")
+        or assignment_payload.get("responder_name")
+        or assignment_payload.get("responder", {}).get("name")
+    )
+    incident["message"] = (
+        incident.get("message")
+        or incident.get("messages", {}).get("victim_confirmation")
+        or assignment_payload.get("reason")
+    )
+    incident["case_events"] = stages
+    incident["algorithm_results"] = {
+        "priority_queue": {
+            "score": priority_result.get("priority_score"),
+            "explanation": priority_result.get("explanation_text"),
+            **_extract_result_payload(priority_result),
+        },
+        "bayesian_severity": {
+            "inferred_severity": bayesian_result.get("inferred_severity"),
+            "posterior": bayesian_result.get("posterior"),
+            "explanation": bayesian_result.get("explanation_text"),
+            **_extract_result_payload(bayesian_result),
+        },
+        "dijkstra": {
+            **dijkstra_payload,
+            "destination": dijkstra_payload.get("destination") or assignment_payload.get("destination"),
+            "eta": dijkstra_payload.get("eta") or assignment_payload.get("eta"),
+        },
+        "yen_routes": (_extract_result_payload(yen_result).get("routes") or yen_result.get("routes") or []),
+        "hungarian_assignment": assignment_payload,
+        "gale_shapley": volunteer_result.get("matches") or _extract_result_payload(volunteer_result).get("matches") or [],
+        "min_cost_flow": _extract_result_payload(min_cost_result),
+        "messages": incident.get("messages", {}),
+        "case_trace": {
+            "status": incident.get("status"),
+            "critical_needs": incident.get("critical_needs"),
+            "events": stages,
+        },
+    }
+    return incident
+
 @router.get("/incidents")
 async def get_incidents():
     """
     Get all active incidents.
     """
     try:
-        # This would query the graph database
-        # For now, return mock data
-        return [
-            {
-                "id": "mock-1",
-                "disaster_type": "flood",
-                "zone": "Zone A",
-                "severity": "high",
-                "people_count": 4,
-                "status": "assigned",
-                "responder": {"name": "Ambulance 1"},
-                "eta": "15 minutes"
-            }
-        ]
+        incidents = operational_repository.list_incidents()
+        return [dict(row.get("incident_data") or {}, sos_id=row.get("sos_id")) for row in incidents]
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Error fetching incidents: {str(e)}")
 
@@ -386,24 +458,25 @@ async def get_incident(sos_id: str):
     Get details for a specific incident.
     """
     try:
-        # This would query the graph database
-        # For now, return mock data
-        return {
-            "id": sos_id,
-            "status": "assigned",
-            "priority_score": 85,
-            "eta": "12 minutes",
-            "assignment": {
-                "responder": {"name": "Ambulance 1", "type": "Advanced Life Support"},
-                "eta": "12 minutes",
-                "route": ["Zone A", "Main St", "Hospital"],
-                "destination": {"name": "City Hospital", "type": "hospital"},
-                "explanation": "Responder selected because it matched oxygen capability, had the lowest safe ETA, and was currently available."
-            },
-            "latest_message": "Help is on the way. An ambulance with oxygen support is 12 minutes away."
-        }
+        replay = operational_repository.get_case_replay(sos_id)
+        incident = build_incident_tracking_payload(replay)
+        if not incident:
+            raise HTTPException(status_code=404, detail="Incident not found.")
+        return incident
+    except HTTPException:
+        raise
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Error fetching incident: {str(e)}")
+
+
+@router.get("/victims/{victim_id}/incidents")
+async def get_victim_incidents(victim_id: str):
+    """Get all SOS incidents submitted by a specific victim profile."""
+    try:
+        incidents = operational_repository.list_incidents_for_victim(victim_id)
+        return [dict(row.get("incident_data") or {}, sos_id=row.get("sos_id")) for row in incidents]
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Error fetching victim incidents: {str(e)}")
 
 
 @router.get("/incidents/{sos_id}/replay")

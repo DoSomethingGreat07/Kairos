@@ -63,6 +63,27 @@ def test_sos_request_accepts_nested_payload_and_builds_legacy_fields():
     assert "blocked road access" in incident["critical_needs"]
 
 
+def test_sos_request_to_incident_preserves_registered_victim_profile():
+    payload = {
+        "disaster_type": "fire",
+        "location": {"zone": "Zone A"},
+        "severity": "high",
+        "people_count": 2,
+        "registered_victim_profile": {
+            "victim_profile_id": "victim-123",
+            "home_zone": "zone_a",
+            "work_zone": "zone_b",
+            "frequent_zones": ["zone_c"],
+        },
+    }
+
+    request = SOSRequest.model_validate(payload)
+    incident = request.to_incident("generated-id", datetime(2026, 1, 1))
+
+    assert incident["registered_victim_profile"]["home_zone"] == "zone_a"
+    assert incident["registered_victim_profile"]["frequent_zones"] == ["zone_c"]
+
+
 def test_sos_request_accepts_legacy_flat_payload():
     request = SOSRequest.model_validate(
         {

@@ -45,6 +45,29 @@ class OperationalRepository:
     def __init__(self, client: Optional[PostgresClient] = None) -> None:
         self.client = client or PostgresClient()
 
+    def _resolve_zone_id(self, zone_value: Any) -> Optional[str]:
+        if not zone_value:
+            return None
+        normalized = str(zone_value).strip()
+        if not normalized:
+            return None
+
+        direct = self.client.fetch_one(
+            "SELECT id FROM zone_definitions WHERE id = %(zone)s LIMIT 1",
+            {"zone": normalized},
+        )
+        if direct:
+            return direct["id"]
+
+        by_name = self.client.fetch_one(
+            "SELECT id FROM zone_definitions WHERE LOWER(name) = LOWER(%(zone)s) LIMIT 1",
+            {"zone": normalized},
+        )
+        if by_name:
+            return by_name["id"]
+
+        return None
+
     def ensure_schema(self) -> None:
         for sql_file in sorted(SQL_INIT_DIR.glob("*.sql")):
             query = sql_file.read_text(encoding="utf-8")
@@ -580,23 +603,42 @@ class OperationalRepository:
         self._execute_json_upsert(query, rows)
 
     def save_incident(self, incident: Dict[str, Any]) -> None:
+        incident_record = dict(incident)
+        registered_profile = incident_record.get("registered_victim_profile") or {}
+        victim_profile_id = registered_profile.get("victim_profile_id")
+        if victim_profile_id and not incident_record.get("victim_profile_id"):
+            incident_record["victim_profile_id"] = victim_profile_id
         payload = {
-            "sos_id": incident["sos_id"],
-            "zone_id": incident.get("zone"),
-            "disaster_type": incident.get("disaster_type"),
-            "severity": incident.get("severity") or incident.get("inferred_severity") or "medium",
-            "needs_oxygen": incident.get("needs_oxygen", incident.get("oxygen_required", False)),
-            "people_count": incident.get("people_count", 1),
-            "created_at": incident.get("created_at"),
-            "latitude": incident.get("latitude", 0.0),
-            "longitude": incident.get("longitude", 0.0),
-            "required_skill": incident.get("required_skill"),
-            "is_elderly": incident.get("is_elderly", incident.get("elderly", False)),
-            "priority_score": incident.get("priority_score"),
-            "inferred_severity": incident.get("inferred_severity"),
-            "incident_data": incident,
+            "sos_id": incident_record["sos_id"],
+            "zone_id": self._resolve_zone_id(incident_record.get("zone")),
+            "disaster_type": incident_record.get("disaster_type"),
+            "severity": incident_record.get("severity") or incident_record.get("inferred_severity") or "medium",
+            "needs_oxygen": incident_record.get("needs_oxygen", incident_record.get("oxygen_required", False)),
+            "people_count": incident_record.get("people_count", 1),
+            "created_at": incident_record.get("created_at"),
+            "latitude": incident_record.get("latitude", 0.0),
+            "longitude": incident_record.get("longitude", 0.0),
+            "required_skill": incident_record.get("required_skill"),
+            "is_elderly": incident_record.get("is_elderly", incident_record.get("elderly", False)),
+            "priority_score": incident_record.get("priority_score"),
+            "inferred_severity": incident_record.get("inferred_severity"),
+            "incident_data": incident_record,
         }
         self.upsert_sos([payload])
+        victim_profile_id = incident_record.get("victim_profile_id")
+        if victim_profile_id:
+            try:
+                self.client.execute(
+                    """
+                    UPDATE sos_incidents
+                    SET victim_profile_id = %(victim_profile_id)s
+                    WHERE sos_id = %(sos_id)s
+                    """,
+                    {"sos_id": incident_record["sos_id"], "victim_profile_id": victim_profile_id},
+                )
+            except Exception:
+                # Older schemas may not have the explicit foreign-key column yet.
+                pass
 
     def log_case_stage(self, sos_id: str, stage_name: str, status: str, metadata: Optional[Dict[str, Any]] = None) -> Optional[Dict[str, Any]]:
         query = """
@@ -790,6 +832,41 @@ class OperationalRepository:
                 "min_cost_flow": latest("min_cost_flow_results"),
             },
         }
+
+    def get_incident(self, sos_id: str) -> Optional[Dict[str, Any]]:
+        incident = self.client.fetch_one(
+            "SELECT * FROM sos_incidents WHERE sos_id = %(sos_id)s",
+            {"sos_id": sos_id},
+        )
+        if not incident:
+            return None
+        return incident
+
+    def list_incidents(self, limit: int = 50) -> List[Dict[str, Any]]:
+        query = """
+        SELECT sos_id, zone_id, disaster_type, severity, needs_oxygen, people_count,
+               created_at, latitude, longitude, required_skill, is_elderly,
+               priority_score, inferred_severity, incident_data
+        FROM sos_incidents
+        ORDER BY created_at DESC
+        LIMIT %(limit)s
+        """
+        return self.client.fetch_all(query, {"limit": limit})
+
+    def list_incidents_for_victim(self, victim_profile_id: str, limit: int = 25) -> List[Dict[str, Any]]:
+        query = """
+        SELECT sos_id, zone_id, disaster_type, severity, needs_oxygen, people_count,
+               created_at, latitude, longitude, required_skill, is_elderly,
+               priority_score, inferred_severity, incident_data
+        FROM sos_incidents
+        WHERE COALESCE(
+            incident_data->'registered_victim_profile'->>'victim_profile_id',
+            incident_data->>'victim_profile_id'
+        ) = %(victim_profile_id)s
+        ORDER BY created_at DESC
+        LIMIT %(limit)s
+        """
+        return self.client.fetch_all(query, {"victim_profile_id": victim_profile_id, "limit": limit})
 
     def get_table_count(self, table_name: str, id_column: str) -> Dict[str, int]:
         query = f"""

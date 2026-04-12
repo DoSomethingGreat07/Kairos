@@ -127,7 +127,7 @@ class OrganizationIdentityStep(BaseModel):
     registration_number: str
     primary_contact_name: str
     primary_contact_phone: str
-    primary_contact_email: str
+    primary_contact_email: Optional[str] = None
     logo_url: Optional[str] = None
 
 
@@ -179,9 +179,9 @@ class OrganizationResponderRosterStep(BaseModel):
 
 
 class OrganizationAuthorizationStep(BaseModel):
-    proof_of_registration_url: str
+    proof_of_registration_url: Optional[str] = None
     authorized_signatory_name: str
-    authorized_signatory_title: str
+    authorized_signatory_title: Optional[str] = None
     password: str = Field(min_length=8)
     agree_data_sharing: bool
     agree_operational_guidelines: bool
@@ -203,8 +203,8 @@ class ResponderOrganizationStep(BaseModel):
     name: str
     type: str
     branch_name: str
-    branch_id: str
-    official_email: str
+    branch_id: Optional[str] = None
+    official_email: Optional[str] = None
     contact_number: str
     verification_status: str = "pending"
 
@@ -216,7 +216,7 @@ class ResponderPersonalStep(BaseModel):
     gender: Optional[str] = None
     government_id_type: str
     government_id_number: str
-    profile_photo_url: str
+    profile_photo_url: Optional[str] = None
 
 
 class ResponderRoleStep(BaseModel):
@@ -272,13 +272,13 @@ class ResponderContactStep(BaseModel):
     backup_contact: Optional[str] = None
     radio_call_sign: Optional[str] = None
     preferred_contact_method: str
-    emergency_contact_name: str
-    emergency_contact_number: str
+    emergency_contact_name: Optional[str] = None
+    emergency_contact_number: Optional[str] = None
 
 
 class ResponderVerificationStep(BaseModel):
-    government_id_url: str
-    organization_badge_url: str
+    government_id_url: Optional[str] = None
+    organization_badge_url: Optional[str] = None
     certification_proof_url: Optional[str] = None
     driver_license_url: Optional[str] = None
     medical_license_url: Optional[str] = None
@@ -288,7 +288,7 @@ class ResponderVerificationStep(BaseModel):
 
 
 class ResponderAccountStep(BaseModel):
-    username: str
+    username: Optional[str] = None
     password: str = Field(min_length=8)
     terms_acknowledged: bool
     data_sharing_consent: bool
@@ -315,18 +315,12 @@ class ResponderRegistrationRequest(BaseModel):
         medical_roles = {"Paramedic", "Medical Staff"}
         transport_roles = {"Boat Operator", "Helicopter Operator"}
 
-        if not self.role.response_categories:
-            raise ValueError("At least one response category is required.")
         if not self.skills.capabilities:
             raise ValueError("At least one skill is required.")
         if not self.skills.languages:
             raise ValueError("At least one language is required.")
-        if primary_role != "Volunteer" and not (self.personal.responder_id or "").strip():
-            raise ValueError("Responder ID is required for non-volunteer roles.")
         if primary_role == "Shelter Coordinator" and not (self.role.shelter_operations_experience or "").strip():
             raise ValueError("Shelter coordinators must provide shelter operations experience.")
-        if primary_role in vehicle_roles and not self.vehicle.assigned:
-            raise ValueError("This responder role requires vehicle assignment details.")
         if primary_role in vehicle_roles and self.vehicle.assigned:
             if not self.vehicle.vehicle_type or not self.vehicle.registration_number:
                 raise ValueError("Assigned vehicle roles require vehicle type and registration number.")
@@ -348,10 +342,6 @@ class ResponderRegistrationRequest(BaseModel):
                 raise ValueError("Special transport certifications require expiry dates.")
             if any(not (cert.proof_url or "").strip() for cert in certs):
                 raise ValueError("Special transport certifications require proof URLs.")
-        if self.coverage.availability == "Available" and (not self.coverage.shift_start or not self.coverage.shift_end):
-            raise ValueError("Available responders must provide shift start and end times.")
-        if not self.coverage.location_sharing:
-            raise ValueError("Location sharing consent is required for dispatch use.")
         if not self.account.terms_acknowledged or not self.account.data_sharing_consent or not self.account.dispatch_location_consent:
             raise ValueError("All account acknowledgements and operational consents are required.")
         return self
@@ -535,7 +525,7 @@ def build_responder_storage_payload(payload: Dict[str, Any]) -> Dict[str, Any]:
             "date_of_birth": personal["date_of_birth"],
             "preferred_language": skills["languages"][0] if skills.get("languages") else None,
             "home_base": organization.get("branch_name"),
-            "profile_photo_url": personal["profile_photo_url"],
+            "profile_photo_url": personal.get("profile_photo_url"),
             "years_of_experience": role.get("experience_years", 0),
             "password": account["password"],
         },
@@ -643,10 +633,15 @@ async def save_responder_registration(request: ResponderRegistrationRequest):
         payload["active_capabilities"] = active_capabilities
         responder = repository.save_responder_profile(payload)
         password_record = hash_password(request.account.password)
+        login_identifier = (
+            (request.account.username or "").strip()
+            or (request.personal.responder_id or "").strip()
+            or f"responder-{responder['id']}"
+        )
         repository.create_auth_account(
             role="responder",
             subject_id=responder["id"],
-            login_identifier=request.account.username,
+            login_identifier=login_identifier,
             password_hash=password_record.password_hash,
             password_salt=password_record.salt,
             email=request.organization.official_email,
