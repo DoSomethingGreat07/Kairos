@@ -31,6 +31,7 @@ class Broadcaster:
 
     async def connect(self, websocket):
         """Add a new WebSocket connection."""
+        await websocket.accept()
         async with self._lock:
             self.connections.add(websocket)
 

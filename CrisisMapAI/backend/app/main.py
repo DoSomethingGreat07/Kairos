@@ -1,4 +1,4 @@
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException, WebSocket
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 from typing import Optional, List
@@ -100,16 +100,8 @@ app.include_router(auth_router, prefix="/api", tags=["auth"])
 
 # WebSocket endpoint for real-time updates
 @app.websocket("/ws")
-async def websocket_endpoint(websocket):
+async def websocket_endpoint(websocket: WebSocket):
     await broadcaster.connect(websocket)
-    try:
-        while True:
-            # Keep connection alive
-            await websocket.receive_text()
-    except Exception:
-        pass
-    finally:
-        broadcaster.disconnect(websocket)
 
 # Health check endpoint
 @app.get("/health")

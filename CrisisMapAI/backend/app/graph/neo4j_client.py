@@ -1,5 +1,6 @@
 from neo4j import GraphDatabase
 from typing import Dict, Any, List, Optional
+import json
 from ..config import settings
 
 class Neo4jClient:
@@ -40,7 +41,7 @@ class Neo4jClient:
             return []
 
         with self.driver.session() as session:
-            result = session.run(query, parameters or {})
+            result = session.run(query, self._sanitize_parameters(parameters or {}))
             return [record.data() for record in result]
 
     async def execute_query_async(self, query: str, parameters: Optional[Dict[str, Any]] = None) -> List[Dict[str, Any]]:
@@ -50,11 +51,43 @@ class Neo4jClient:
             return []
 
         async with self.driver.session() as session:
-            result = await session.run(query, parameters or {})
+            result = await session.run(query, self._sanitize_parameters(parameters or {}))
             records = []
             async for record in result:
                 records.append(dict(record))
             return records
+
+    def _sanitize_parameters(self, value: Any) -> Any:
+        if isinstance(value, dict):
+            return {key: self._sanitize_parameters(item) for key, item in value.items()}
+        if isinstance(value, list):
+            sanitized_items = [self._sanitize_parameters(item) for item in value]
+            if all(isinstance(item, (str, int, float, bool)) or item is None for item in sanitized_items):
+                return sanitized_items
+            return json.dumps(sanitized_items)
+        if isinstance(value, tuple):
+            return self._sanitize_parameters(list(value))
+        if isinstance(value, (str, int, float, bool)) or value is None:
+            return value
+        return str(value)
+
+    def _sanitize_property_map(self, properties: Dict[str, Any]) -> Dict[str, Any]:
+        safe: Dict[str, Any] = {}
+        for key, value in properties.items():
+            if isinstance(value, dict):
+                safe[key] = json.dumps(value)
+            elif isinstance(value, list):
+                if all(isinstance(item, (str, int, float, bool)) or item is None for item in value):
+                    safe[key] = value
+                else:
+                    safe[key] = json.dumps(value)
+            elif isinstance(value, tuple):
+                safe[key] = json.dumps(list(value))
+            elif isinstance(value, (str, int, float, bool)) or value is None:
+                safe[key] = value
+            else:
+                safe[key] = str(value)
+        return safe
 
     def create_unique_constraint(self, label: str, property_key: str) -> None:
         """Create a unique constraint for a node label property."""
@@ -72,19 +105,20 @@ class Neo4jClient:
 
     def create_node(self, label: str, properties: Dict[str, Any], merge: bool = False) -> Optional[str]:
         """Create or merge a node by id property."""
+        safe_properties = self._sanitize_property_map(properties)
         if merge and "id" in properties:
             query = f"""
             MERGE (n:{label} {{id: $id}})
             SET n += $props
             RETURN n.id as id
             """
-            params = {"id": properties["id"], "props": properties}
+            params = {"id": properties["id"], "props": safe_properties}
         else:
             query = f"""
             CREATE (n:{label} $props)
             RETURN n.id as id
             """
-            params = {"props": properties}
+            params = {"props": safe_properties}
 
         result = self.execute_query(query, params)
         return result[0]["id"] if result else None
@@ -100,7 +134,7 @@ class Neo4jClient:
         merge: bool = False
     ) -> Optional[str]:
         """Create or merge a relationship between nodes by id."""
-        rel_props = rel_props or {}
+        rel_props = self._sanitize_property_map(rel_props or {})
         if merge:
             query = f"""
             MATCH (a:{from_label} {{id: $from_id}}), (b:{to_label} {{id: $to_id}})

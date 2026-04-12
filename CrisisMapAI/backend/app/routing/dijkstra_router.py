@@ -7,7 +7,7 @@ from typing import Any, Dict, List, Optional, Tuple
 
 import networkx as nx
 
-from ..operations.default_data import hospital_definitions, road_definitions, shelter_definitions
+from ..operations.default_data import hospital_definitions, road_definitions, shelter_definitions, zone_definitions
 
 
 class DijkstraRouter:
@@ -15,6 +15,7 @@ class DijkstraRouter:
 
     def __init__(self, roads: Optional[List[Dict[str, Any]]] = None) -> None:
         self.roads = roads or road_definitions()
+        self.zones = {zone["id"]: zone for zone in zone_definitions()}
 
     def build_graph(
         self,
@@ -42,10 +43,9 @@ class DijkstraRouter:
             if not road.get("passable", True):
                 excluded.append({"road_id": road["road_id"], "reason": "road.passable = false"})
                 continue
-            if requires_oxygen_path and not road.get("has_oxygen", False):
-                excluded.append({"road_id": road["road_id"], "reason": "oxygen support required but road.has_oxygen = false"})
-                continue
             weight = float(road["travel_time"]) * float(road["congestion"])
+            if requires_oxygen_path and not road.get("has_oxygen", False):
+                weight += 8.0
             graph.add_edge(
                 road["source_zone"],
                 road["target_zone"],
@@ -54,6 +54,7 @@ class DijkstraRouter:
                 travel_time=road["travel_time"],
                 congestion=road["congestion"],
                 distance_km=road["distance_km"],
+                oxygen_supported=road.get("has_oxygen", False),
             )
 
         return graph, excluded
@@ -136,7 +137,7 @@ class DijkstraRouter:
         destination_key = str(destination).lower().replace(" ", "_")
         if destination_key == "hospital":
             hospitals = hospital_definitions()
-            target = min(hospitals, key=lambda row: row["zone_id"] != origin_zone)
+            target = self._nearest_facility(origin_zone, hospitals)
             return target["zone_id"], {
                 "id": target["id"],
                 "name": target["name"],
@@ -147,7 +148,7 @@ class DijkstraRouter:
             }
         if destination_key in {"shelter", "safe_zone"}:
             shelters = shelter_definitions()
-            target = min(shelters, key=lambda row: row["zone_id"] != origin_zone)
+            target = self._nearest_facility(origin_zone, shelters)
             return target["zone_id"], {
                 "id": target["id"],
                 "name": target["name"],
@@ -157,6 +158,27 @@ class DijkstraRouter:
                 "longitude": target.get("longitude"),
             }
         return destination, {"id": destination, "name": destination, "type": "zone"}
+
+    def _nearest_facility(self, origin_zone: str, facilities: List[Dict[str, Any]]) -> Dict[str, Any]:
+        same_zone = [facility for facility in facilities if facility.get("zone_id") == origin_zone]
+        if same_zone:
+            return same_zone[0]
+
+        origin = self.zones.get(origin_zone) or {}
+        origin_latitude = origin.get("latitude")
+        origin_longitude = origin.get("longitude")
+        if origin_latitude is None or origin_longitude is None:
+            return facilities[0]
+
+        return min(
+            facilities,
+            key=lambda facility: self._haversine_km(
+                origin_latitude,
+                origin_longitude,
+                facility.get("latitude") if facility.get("latitude") is not None else origin_latitude,
+                facility.get("longitude") if facility.get("longitude") is not None else origin_longitude,
+            ),
+        )
 
     def _append_facility_leg(
         self,

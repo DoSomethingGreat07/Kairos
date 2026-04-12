@@ -106,6 +106,55 @@ class RegistrationRepository:
         """
         return self.client.fetch_all(query)
 
+    def get_zone_geo_anchors(self) -> List[Dict[str, Any]]:
+        query = """
+        WITH hospital_anchors AS (
+            SELECT
+                zone_id,
+                AVG(latitude) AS latitude,
+                AVG(longitude) AS longitude,
+                COUNT(*) AS anchor_count,
+                'hospital' AS source
+            FROM hospitals
+            WHERE zone_id IS NOT NULL
+              AND latitude IS NOT NULL
+              AND longitude IS NOT NULL
+            GROUP BY zone_id
+        ),
+        responder_anchors AS (
+            SELECT
+                primary_station_zone_id AS zone_id,
+                AVG((profile_data ->> 'latitude')::double precision) AS latitude,
+                AVG((profile_data ->> 'longitude')::double precision) AS longitude,
+                COUNT(*) AS anchor_count,
+                'responder' AS source
+            FROM responders
+            WHERE primary_station_zone_id IS NOT NULL
+              AND profile_data ? 'latitude'
+              AND profile_data ? 'longitude'
+              AND NULLIF(profile_data ->> 'latitude', '') IS NOT NULL
+              AND NULLIF(profile_data ->> 'longitude', '') IS NOT NULL
+            GROUP BY primary_station_zone_id
+        )
+        SELECT
+            zone_id,
+            latitude,
+            longitude,
+            anchor_count,
+            source
+        FROM hospital_anchors
+        UNION ALL
+        SELECT
+            zone_id,
+            latitude,
+            longitude,
+            anchor_count,
+            source
+        FROM responder_anchors
+        ORDER BY zone_id, source
+        """
+        return self.client.fetch_all(query)
+
     def save_draft(self, role: str, current_step: int, draft_data: Dict[str, Any], draft_id: Optional[str] = None) -> Dict[str, Any]:
         if draft_id:
             query = """
@@ -614,6 +663,7 @@ class RegistrationRepository:
             %(role)s, %(subject_id)s, %(login_identifier)s, %(email)s, %(password_hash)s, %(password_salt)s, %(otp_enabled)s
         )
         ON CONFLICT (role, login_identifier) DO UPDATE SET
+            subject_id = EXCLUDED.subject_id,
             email = EXCLUDED.email,
             password_hash = EXCLUDED.password_hash,
             password_salt = EXCLUDED.password_salt,
@@ -640,7 +690,42 @@ class RegistrationRepository:
         FROM auth_accounts
         WHERE role = %(role)s AND login_identifier = %(login_identifier)s
         """
-        return self.client.fetch_one(query, {"role": role, "login_identifier": login_identifier})
+        account = self.client.fetch_one(query, {"role": role, "login_identifier": login_identifier})
+        if not account:
+            return None
+
+        if role == "responder":
+            profile = self.client.fetch_one(
+                """
+                SELECT id
+                FROM responders
+                WHERE id = %(subject_id)s
+                """,
+                {"subject_id": account["subject_id"]},
+            )
+            if not profile:
+                current_profile = self.client.fetch_one(
+                    """
+                    SELECT id
+                    FROM responders
+                    WHERE employee_id = %(login_identifier)s
+                    ORDER BY updated_at DESC
+                    LIMIT 1
+                    """,
+                    {"login_identifier": login_identifier},
+                )
+                if current_profile:
+                    self.client.execute(
+                        """
+                        UPDATE auth_accounts
+                        SET subject_id = %(subject_id)s, updated_at = NOW()
+                        WHERE id = %(account_id)s
+                        """,
+                        {"subject_id": current_profile["id"], "account_id": account["id"]},
+                    )
+                    account["subject_id"] = current_profile["id"]
+
+        return account
 
     def create_otp(self, role: str, login_identifier: str, otp_code: str, expires_at: str) -> Dict[str, Any]:
         query = """

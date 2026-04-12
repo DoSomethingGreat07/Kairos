@@ -100,3 +100,68 @@ def test_build_incident_tracking_payload_uses_persisted_results():
     assert payload["algorithm_results"]["hungarian_assignment"]["responder_name"] == "Ambulance 1"
     assert payload["algorithm_results"]["gale_shapley"][0]["volunteer_name"] == "Alex"
     assert len(payload["case_events"]) == 2
+
+
+def test_normalize_sos_location_snaps_gps_to_nearest_seeded_zone(monkeypatch):
+    monkeypatch.setattr(
+        sos.registration_repository,
+        "get_zones",
+        lambda: [
+            {"id": "zone_a", "name": "Zone A"},
+            {"id": "zone_b", "name": "Zone B"},
+            {"id": "zone_c", "name": "Zone C"},
+        ],
+    )
+    monkeypatch.setattr(
+        sos.registration_repository,
+        "get_zone_geo_anchors",
+        lambda: [
+            {"zone_id": "zone_a", "latitude": 41.85, "longitude": -87.65, "anchor_count": 1, "source": "hospital"},
+            {"zone_id": "zone_b", "latitude": 41.862, "longitude": -87.641, "anchor_count": 1, "source": "hospital"},
+            {"zone_id": "zone_c", "latitude": 41.874, "longitude": -87.632, "anchor_count": 1, "source": "hospital"},
+        ],
+    )
+
+    normalized = sos.normalize_sos_location(
+        {
+            "location": {
+                "zone": "Location pending",
+                "latitude": 41.861,
+                "longitude": -87.642,
+            }
+        }
+    )
+
+    assert normalized["location"]["zone"] == "zone_b"
+    assert normalized["zone"] == "zone_b"
+    assert normalized["location_resolution"]["source"] == "nearest_seeded_zone_anchor"
+    assert normalized["location_resolution"]["zone_id"] == "zone_b"
+
+
+def test_normalize_sos_location_keeps_canonical_zone_when_already_supplied(monkeypatch):
+    monkeypatch.setattr(
+        sos.registration_repository,
+        "get_zones",
+        lambda: [
+            {"id": "zone_a", "name": "Zone A"},
+            {"id": "zone_b", "name": "Zone B"},
+        ],
+    )
+    monkeypatch.setattr(
+        sos.registration_repository,
+        "get_zone_geo_anchors",
+        lambda: [],
+    )
+
+    normalized = sos.normalize_sos_location(
+        {
+            "zone": "Zone A",
+            "location": {
+                "zone": "Zone A",
+            },
+        }
+    )
+
+    assert normalized["location"]["zone"] == "zone_a"
+    assert normalized["zone"] == "zone_a"
+    assert "location_resolution" not in normalized

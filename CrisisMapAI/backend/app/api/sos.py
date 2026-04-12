@@ -1,5 +1,6 @@
 from fastapi import APIRouter, HTTPException
 from datetime import datetime
+import math
 import uuid
 
 from ..models.schemas import SOSRequest, SOSResponse
@@ -32,6 +33,120 @@ graph_writer = GraphWriter()
 llm_messenger = LLMMessenger()
 registration_repository = RegistrationRepository()
 operational_repository = OperationalRepository()
+
+
+def _haversine_km(lat1: float, lon1: float, lat2: float, lon2: float) -> float:
+    radius_km = 6371.0
+    lat1_rad = math.radians(lat1)
+    lon1_rad = math.radians(lon1)
+    lat2_rad = math.radians(lat2)
+    lon2_rad = math.radians(lon2)
+    delta_lat = lat2_rad - lat1_rad
+    delta_lon = lon2_rad - lon1_rad
+
+    a = (
+        math.sin(delta_lat / 2) ** 2
+        + math.cos(lat1_rad) * math.cos(lat2_rad) * math.sin(delta_lon / 2) ** 2
+    )
+    return 2 * radius_km * math.asin(math.sqrt(a))
+
+
+def normalize_sos_location(sos_payload: dict) -> dict:
+    location = sos_payload.get("location") or {}
+    latitude = location.get("latitude")
+    longitude = location.get("longitude")
+    raw_zone = location.get("zone") or location.get("custom_zone") or sos_payload.get("zone")
+
+    try:
+        zones = registration_repository.get_zones()
+    except Exception:
+        zones = []
+
+    canonical_zones = {}
+    for zone in zones:
+        zone_id = zone.get("id")
+        zone_name = zone.get("name")
+        if zone_id:
+            canonical_zones[str(zone_id).strip().lower()] = zone_id
+        if zone_name:
+            canonical_zones[str(zone_name).strip().lower()] = zone_id
+
+    normalized_zone = canonical_zones.get(str(raw_zone).strip().lower()) if raw_zone else None
+    nearest_zone = None
+    anchor_debug = None
+
+    if latitude is not None and longitude is not None:
+        try:
+            anchors = registration_repository.get_zone_geo_anchors()
+        except Exception:
+            anchors = []
+
+        aggregated_anchors: dict[str, dict] = {}
+        for anchor in anchors:
+            zone_id = anchor.get("zone_id")
+            anchor_latitude = anchor.get("latitude")
+            anchor_longitude = anchor.get("longitude")
+            weight = anchor.get("anchor_count") or 1
+            if not zone_id or anchor_latitude is None or anchor_longitude is None:
+                continue
+            zone_entry = aggregated_anchors.setdefault(
+                zone_id,
+                {"weighted_latitude": 0.0, "weighted_longitude": 0.0, "weight": 0, "sources": []},
+            )
+            zone_entry["weighted_latitude"] += float(anchor_latitude) * weight
+            zone_entry["weighted_longitude"] += float(anchor_longitude) * weight
+            zone_entry["weight"] += weight
+            source = anchor.get("source")
+            if source:
+                zone_entry["sources"].append(source)
+
+        candidates = []
+        for zone_id, values in aggregated_anchors.items():
+            if not values["weight"]:
+                continue
+            anchor_latitude = values["weighted_latitude"] / values["weight"]
+            anchor_longitude = values["weighted_longitude"] / values["weight"]
+            distance_km = _haversine_km(
+                float(latitude),
+                float(longitude),
+                anchor_latitude,
+                anchor_longitude,
+            )
+            candidates.append(
+                {
+                    "zone_id": zone_id,
+                    "distance_km": distance_km,
+                    "anchor_latitude": anchor_latitude,
+                    "anchor_longitude": anchor_longitude,
+                    "sources": sorted(set(values["sources"])),
+                }
+            )
+
+        if candidates:
+            nearest_zone = min(candidates, key=lambda candidate: candidate["distance_km"])
+            anchor_debug = nearest_zone
+
+    resolved_zone = normalized_zone or (nearest_zone or {}).get("zone_id")
+    if not resolved_zone:
+        return sos_payload
+
+    enriched = dict(sos_payload)
+    enriched_location = dict(location)
+    enriched_location["zone"] = resolved_zone
+    enriched["location"] = enriched_location
+    enriched["zone"] = resolved_zone
+
+    if anchor_debug:
+        enriched["location_resolution"] = {
+            "source": "nearest_seeded_zone_anchor",
+            "zone_id": anchor_debug["zone_id"],
+            "distance_km": round(anchor_debug["distance_km"], 2),
+            "anchor_latitude": round(anchor_debug["anchor_latitude"], 6),
+            "anchor_longitude": round(anchor_debug["anchor_longitude"], 6),
+            "anchor_sources": anchor_debug["sources"],
+        }
+
+    return enriched
 
 
 def apply_victim_profile_defaults(sos_payload: dict) -> dict:
@@ -108,8 +223,11 @@ async def submit_sos(sos_data: SOSRequest):
         sos_id = str(uuid.uuid4())
         timestamp = datetime.utcnow()
         enriched_payload = apply_victim_profile_defaults(sos_data.model_dump(mode="json"))
+        enriched_payload = normalize_sos_location(enriched_payload)
         enriched_request = SOSRequest.model_validate(enriched_payload)
         incident = enriched_request.to_incident(sos_id=sos_id, timestamp=timestamp)
+        if enriched_payload.get("location_resolution"):
+            incident["location_resolution"] = enriched_payload["location_resolution"]
         persist_case_event(sos_id, "SOS_CREATED", {"zone": incident.get("zone"), "disaster_type": incident.get("disaster_type")})
         persist_incident_snapshot(incident)
 

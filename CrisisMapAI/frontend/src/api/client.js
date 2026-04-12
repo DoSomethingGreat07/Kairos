@@ -16,6 +16,9 @@ export const normalizeIncident = (incident = {}) => ({
   status: incident.status || 'received',
   people_count: incident.people_count ?? 1,
   note: incident.note || incident.notes || '',
+  case_trace: incident.case_trace || incident.algorithm_results?.case_trace || {},
+  messages: incident.messages || incident.algorithm_results?.messages || {},
+  location_resolution: incident.location_resolution || incident.incident_data?.location_resolution || null,
   responder: typeof incident.responder === 'object' ? incident.responder?.name : (incident.responder || incident.assigned_responder?.name || incident.assignment?.responder_name || incident.assignment?.responder?.name || null),
 })
 

@@ -32,9 +32,9 @@ const VictimPanel = () => {
       try {
         const payload = JSON.parse(event.data)
         if (payload.type === 'incident_update') {
-          const data = payload.data
-          if (data.sos_id === sosId || data.id === sosId) {
-            setIncident(normalizeIncident(data))
+          const incidentId = payload.incident_id || payload.data?.sos_id || payload.data?.id
+          if (incidentId === sosId) {
+            fetchIncident(true)
           }
         }
       } catch (err) {}
@@ -76,20 +76,24 @@ const VictimPanel = () => {
   const {
     algorithm_results = {},
     case_events = [],
-    case_trace = {},
     people_count,
   } = incident
 
   const dijkstra = algorithm_results?.dijkstra || {}
   const hungarian = algorithm_results?.hungarian_assignment || {}
   const volunteers = algorithm_results?.gale_shapley || []
-  const msgs = algorithm_results?.messages || {}
+  const msgs = algorithm_results?.messages || incident.messages || {}
+  const caseTrace = incident.case_trace || algorithm_results?.case_trace || {}
+  const route = dijkstra.route || []
+  const backupRoutes = algorithm_results?.yen_routes || []
+  const locationResolution = incident.location_resolution || null
 
   const rawStatus = incident.status || hungarian.status || 'received'
   let displayStatus = 'Request Received'
-  if (rawStatus === 'processed') displayStatus = 'Help Assigned'
+  if (rawStatus === 'processed' || rawStatus === 'assigned') displayStatus = 'Help Assigned'
   else if (rawStatus === 'queued') displayStatus = 'Waiting for Assignment'
   else if (rawStatus === 'blocked_access') displayStatus = 'Access Blocked'
+  else if (rawStatus === 'received') displayStatus = 'Received'
   else if (rawStatus) {
     displayStatus = rawStatus.charAt(0).toUpperCase() + rawStatus.slice(1)
   }
@@ -116,9 +120,9 @@ const VictimPanel = () => {
     priorityIconTint = 'text-amber-500'
   }
 
-  const isHelpAssigned = !!incident.responder
+  const isHelpAssigned = !!incident.responder || !!hungarian.responder_name
   const responderText = isHelpAssigned
-    ? `Responder Assigned: ${incident.responder}`
+    ? `Responder Assigned: ${incident.responder || hungarian.responder_name}`
     : hungarian.assigned === false
       ? (hungarian.reason || 'No responder could be safely assigned yet.')
       : 'Searching for nearest available responder...'
@@ -129,7 +133,7 @@ const VictimPanel = () => {
       ? 'No safe arrival estimate available right now.'
       : 'Estimating arrival time...'
 
-  const destinationName = dijkstra.destination?.name 
+  const destinationName = dijkstra.destination?.name || incident.destination?.name || incident.destination
   const displayDestName = destinationName
     ? destinationName
     : hungarian.destination?.name
@@ -151,6 +155,24 @@ const VictimPanel = () => {
     .slice(0, 5)
 
   const hasVolunteers = volunteers.length > 0
+  const criticalNeeds = Array.isArray(caseTrace?.critical_needs)
+    ? caseTrace.critical_needs
+    : caseTrace?.critical_needs
+      ? [caseTrace.critical_needs]
+      : Array.isArray(incident.critical_needs)
+        ? incident.critical_needs
+        : []
+  const routeSummary = route.length > 1 ? route.join(' → ') : null
+  const destinationType = dijkstra.destination?.type || hungarian.destination?.type || ''
+  const statusMessage = (() => {
+    if (rawStatus === 'blocked_access') {
+      return incident.message || hungarian.reason || 'We found your request, but the current road network or safety conditions are blocking direct access.'
+    }
+    if (isHelpAssigned) {
+      return incident.message || msgs.victim_confirmation || 'A responder has been matched to your SOS and dispatch is tracking the safest approach.'
+    }
+    return incident.message || msgs.victim_confirmation || 'Your SOS has been received. We are evaluating routes, nearby responders, and any volunteer support options now.'
+  })()
 
   return (
     <div className="mx-auto max-w-lg space-y-5 pb-12 pt-6 px-4">
@@ -189,8 +211,7 @@ const VictimPanel = () => {
         <div className="mt-5">
           <h2 className="text-3xl font-black leading-tight tracking-tight">{displayStatus}</h2>
           <p className="mt-2 max-w-md text-sm font-medium leading-6 opacity-90">
-            Your SOS has been submitted successfully. Our emergency coordination system is now tracking your case,
-            assigning the nearest available help, and monitoring for live updates.
+            {statusMessage}
           </p>
         </div>
       </section>
@@ -227,6 +248,9 @@ const VictimPanel = () => {
             {hungarian.responder_type && (
                <p className="text-sm text-slate-500">Responder Type: {hungarian.responder_type}</p>
             )}
+            {hungarian.rationale && (
+              <p className="mt-1 text-xs font-medium text-slate-500">{hungarian.rationale}</p>
+            )}
             {hasVolunteers && (
               <p className="mt-1 flex items-center gap-1 text-xs font-semibold text-emerald-600">
                 <svg className="h-3.5 w-3.5" viewBox="0 0 20 20" fill="currentColor"><path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" /></svg>
@@ -253,24 +277,43 @@ const VictimPanel = () => {
           <div>
             <h3 className="text-xs font-bold uppercase tracking-wide text-slate-400">Destination</h3>
             <p className="mt-3 text-sm font-bold text-slate-900 leading-tight">{displayDestName}</p>
-            {dijkstra.destination?.type && (
-              <p className="mt-1 text-xs font-medium text-slate-500 capitalize">{dijkstra.destination.type}</p>
+            {destinationType && (
+              <p className="mt-1 text-xs font-medium text-slate-500 capitalize">{destinationType}</p>
             )}
           </div>
           <svg className="mt-2 h-6 w-6 text-slate-200 self-end" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/></svg>
         </div>
       </section>
 
+      {(routeSummary || backupRoutes.length > 0 || locationResolution) && (
+        <section className="rounded-[24px] bg-white p-6 shadow-sm border border-slate-100">
+          <h3 className="text-sm font-bold uppercase tracking-wide text-slate-400">Routing Intelligence</h3>
+          {routeSummary && (
+            <p className="mt-3 text-sm font-semibold text-slate-900">Primary Route: {routeSummary}</p>
+          )}
+          {backupRoutes.length > 0 && (
+            <p className="mt-2 text-xs font-medium text-slate-500">
+              Backup Routes Ready: {backupRoutes.length}
+            </p>
+          )}
+          {locationResolution && (
+            <p className="mt-2 text-xs font-medium text-slate-500">
+              Mapped from live coordinates to {locationResolution.zone_id} ({locationResolution.distance_km} km from nearest seeded zone anchor)
+            </p>
+          )}
+        </section>
+      )}
+
       {/* SECTION 6 — SPECIAL NEEDS SUMMARY */}
-      {(case_trace?.critical_needs || people_count) && (
+      {(criticalNeeds.length > 0 || people_count) && (
         <section className="rounded-[24px] border border-sky-100 bg-sky-50 p-5 shadow-sm">
            <h3 className="text-xs font-bold uppercase tracking-wide text-sky-600">Incident Details Logged</h3>
            {people_count && (
              <p className="mt-2 text-sm font-semibold text-sky-900">People Affected: {people_count}</p>
            )}
-           {case_trace?.critical_needs && (
-             <p className="mt-1 text-sm font-semibold text-sky-900">{case_trace.critical_needs}</p>
-           )}
+           {criticalNeeds.map((need) => (
+             <p key={need} className="mt-1 text-sm font-semibold text-sky-900">{need}</p>
+           ))}
         </section>
       )}
 
@@ -285,9 +328,13 @@ const VictimPanel = () => {
              </div>
              <div>
                <h3 className="text-sm font-bold text-emerald-900">Community Volunteer Support</h3>
-               <p className="mt-0.5 text-xs font-medium text-emerald-700">
-                  {volunteers[0].volunteer_name} arriving in ~{volunteers[0].estimated_arrival}
-               </p>
+               {volunteers.slice(0, 3).map((volunteer, index) => (
+                 <p key={`${volunteer.volunteer_name || 'volunteer'}-${index}`} className="mt-0.5 text-xs font-medium text-emerald-700">
+                    {(volunteer.volunteer_name || 'Volunteer responder')}
+                    {volunteer.estimated_arrival ? ` arriving in ~${volunteer.estimated_arrival}` : ''}
+                    {volunteer.rationale ? ` — ${volunteer.rationale}` : ''}
+                 </p>
+               ))}
              </div>
           </div>
         </section>
