@@ -53,7 +53,7 @@ async def login_with_password(request: PasswordLoginRequest):
         raise HTTPException(status_code=401, detail="Invalid credentials.")
     return _session_payload(account)
 
-
+#otp authentication
 @router.post("/auth/otp/request")
 async def request_otp(request: OtpRequest):
     account = repository.get_auth_account(request.role, request.login_identifier)
