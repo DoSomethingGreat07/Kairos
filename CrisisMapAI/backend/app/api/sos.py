@@ -1,6 +1,7 @@
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, File, Form, HTTPException, UploadFile
 from datetime import datetime
 import math
+import requests
 import uuid
 
 from ..models.schemas import SOSRequest, SOSResponse
@@ -17,6 +18,7 @@ from ..realtime.broadcaster import broadcaster
 from ..messaging.llm_messenger import LLMMessenger
 from ..db.postgres import RegistrationRepository
 from ..db.operational_store import OperationalRepository
+from ..config import settings
 
 router = APIRouter()
 
@@ -33,6 +35,8 @@ graph_writer = GraphWriter()
 llm_messenger = LLMMessenger()
 registration_repository = RegistrationRepository()
 operational_repository = OperationalRepository()
+
+ELEVENLABS_STT_URL = "https://api.elevenlabs.io/v1/speech-to-text"
 
 
 def _haversine_km(lat1: float, lon1: float, lat2: float, lon2: float) -> float:
@@ -213,6 +217,113 @@ def apply_victim_profile_defaults(sos_payload: dict) -> dict:
         "emergency_contacts": emergency_contacts,
     }
     return enriched
+
+
+import logging
+import traceback
+
+@router.post("/voice/transcribe")
+async def transcribe_voice_help(
+    subject_id: str = Form(...),
+    role: str = Form(...),
+    audio: UploadFile = File(...),
+):
+    logger = logging.getLogger("voice.transcribe")
+    try:
+        logger.info(f"/voice/transcribe called: subject_id={subject_id}, role={role}")
+        logger.info(f"File received: {getattr(audio, 'filename', None)}")
+        logger.info(f"Content type: {getattr(audio, 'content_type', None)}")
+        audio_bytes = await audio.read()
+        logger.info(f"Byte length: {len(audio_bytes) if audio_bytes else 0}")
+        await audio.seek(0)
+        logger.info(f"ElevenLabs API key loaded: {bool(settings.elevenlabs_api_key)}")
+
+        if role != "victim":
+            logger.warning("Role is not victim")
+            raise HTTPException(status_code=403, detail="Voice SOS is only available for authenticated victim sessions.")
+        if not settings.elevenlabs_api_key:
+            logger.error("ElevenLabs API key is not configured on the server.")
+            raise HTTPException(status_code=500, detail="ElevenLabs API key is not configured on the server.")
+
+        victim_profile = registration_repository.get_profile("victim", subject_id)
+        if not victim_profile:
+            logger.error("Victim profile not found for this session.")
+            raise HTTPException(status_code=404, detail="Victim profile not found for this session.")
+
+        if not audio_bytes:
+            logger.error("Recorded audio is empty.")
+            raise HTTPException(status_code=400, detail="Recorded audio is empty.")
+
+
+        accepted_formats = [
+            "audio/webm", "audio/wav", "audio/mp3", "audio/flac", "audio/m4a"
+        ]
+        content_type = audio.content_type or "audio/webm"
+        # Accept if content_type starts with any accepted format (to allow codecs)
+        if not any(content_type.startswith(fmt) for fmt in accepted_formats):
+            logger.warning(f"Unsupported content type: {content_type}")
+            raise HTTPException(status_code=415, detail={
+                "error": "Unsupported audio format",
+                "received": content_type,
+                "accepted": accepted_formats
+            })
+
+        files = {
+            "file": (
+                audio.filename or "voice-sos.webm",
+                audio_bytes,
+                content_type,
+            )
+        }
+        data = {
+            "model_id": settings.elevenlabs_stt_model_id,
+        }
+        if settings.elevenlabs_stt_mode:
+            data["mode"] = settings.elevenlabs_stt_mode
+
+        try:
+            response = requests.post(
+                ELEVENLABS_STT_URL,
+                headers={"xi-api-key": settings.elevenlabs_api_key},
+                data=data,
+                files=files,
+                timeout=15,
+            )
+        except requests.RequestException as exc:
+            logger.error(f"Unable to reach ElevenLabs STT service: {exc}")
+            logger.error(traceback.format_exc())
+            raise HTTPException(status_code=502, detail={
+                "error": "Unable to reach ElevenLabs STT service",
+                "message": str(exc),
+                "traceback": traceback.format_exc()
+            })
+
+        if not response.ok:
+            logger.error(f"ElevenLabs API error: {response.status_code} - {response.text}")
+            detail = response.text[:500] if response.text else "ElevenLabs STT request failed."
+            raise HTTPException(status_code=502, detail={
+                "error": "ElevenLabs STT request failed",
+                "status_code": response.status_code,
+                "response": detail
+            })
+
+        payload = response.json() if response.content else {}
+        transcript = payload.get("text") or payload.get("transcript") or ""
+        logger.info("Transcription successful")
+        return {
+            "transcript": transcript,
+            "subject_id": subject_id,
+            "timestamp": datetime.utcnow().isoformat(),
+        }
+    except Exception as e:
+        logger.exception(f"Error in /voice/transcribe: {str(e)}")
+        traceback_str = traceback.format_exc()
+        logger.error(f"Traceback: {traceback_str}")
+        raise HTTPException(status_code=500, detail={
+            "error": "Internal server error during transcription",
+            "message": str(e),
+            "traceback": traceback_str
+        })
 
 @router.post("/sos", response_model=SOSResponse)
 async def submit_sos(sos_data: SOSRequest):

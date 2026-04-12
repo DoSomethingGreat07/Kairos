@@ -241,14 +241,14 @@ class GraphWriter:
         if dest_type == "hospital":
             query = """
             MATCH (h:Hospital {id: $destination_id})
-            SET h.available_beds = h.available_beds - 1, h.last_admission = datetime()
             WHERE h.available_beds > 0
+            SET h.available_beds = h.available_beds - 1, h.last_admission = datetime()
             """
         elif dest_type == "shelter":
             query = """
             MATCH (s:Shelter {id: $destination_id})
-            SET s.occupancy = s.occupancy + 1, s.last_admission = datetime()
             WHERE s.occupancy < s.capacity
+            SET s.occupancy = s.occupancy + 1, s.last_admission = datetime()
             """
         else:
             return

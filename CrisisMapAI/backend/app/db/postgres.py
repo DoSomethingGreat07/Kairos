@@ -714,6 +714,14 @@ class RegistrationRepository:
                     """,
                     {"login_identifier": login_identifier},
                 )
+                if not current_profile:
+                    draft = self._find_responder_draft_for_login_identifier(login_identifier, account.get("email"))
+                    if draft:
+                        try:
+                            restored = self.save_responder_profile(draft["draft_data"])
+                            current_profile = {"id": restored["id"]}
+                        except Exception:
+                            current_profile = None
                 if current_profile:
                     self.client.execute(
                         """
@@ -726,6 +734,50 @@ class RegistrationRepository:
                     account["subject_id"] = current_profile["id"]
 
         return account
+
+    def _find_responder_draft_for_login_identifier(self, login_identifier: str, email: Optional[str] = None) -> Optional[Dict[str, Any]]:
+        queries = [
+            (
+                """
+                SELECT id, role, current_step, draft_data, updated_at
+                FROM registration_drafts
+                WHERE role = 'responder'
+                  AND (
+                    draft_data -> 'account' ->> 'username' = %(login_identifier)s
+                    OR draft_data -> 'identity' ->> 'employee_id' = %(login_identifier)s
+                    OR draft_data -> 'personal' ->> 'responder_id' = %(login_identifier)s
+                    OR draft_data ->> 'organization_code' = %(login_identifier)s
+                  )
+                ORDER BY updated_at DESC
+                LIMIT 1
+                """,
+                {"login_identifier": login_identifier},
+            ),
+        ]
+
+        if email:
+            queries.append(
+                (
+                    """
+                    SELECT id, role, current_step, draft_data, updated_at
+                    FROM registration_drafts
+                    WHERE role = 'responder'
+                      AND (
+                        draft_data -> 'identity' ->> 'email' = %(email)s
+                        OR draft_data -> 'organization' ->> 'official_email' = %(email)s
+                      )
+                    ORDER BY updated_at DESC
+                    LIMIT 1
+                    """,
+                    {"email": email},
+                )
+            )
+
+        for query, params in queries:
+            draft = self.client.fetch_one(query, params)
+            if draft:
+                return draft
+        return None
 
     def create_otp(self, role: str, login_identifier: str, otp_code: str, expires_at: str) -> Dict[str, Any]:
         query = """

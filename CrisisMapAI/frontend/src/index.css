@@ -284,4 +284,133 @@
   .button-soft {
     @apply inline-flex items-center justify-center rounded-2xl border border-slate-200 bg-white px-4 py-3 font-semibold text-slate-700 transition hover:border-slate-300 hover:bg-slate-50;
   }
+
+  .voice-sos-shell {
+    position: relative;
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    margin-bottom: 2rem;
+    margin-top: 0.5rem;
+    justify-content: center;
+    width: 100%;
+  }
+
+  .voice-sos-button {
+    position: relative;
+    display: inline-flex;
+    height: 56px;
+    width: 56px;
+    align-items: center;
+    justify-content: center;
+    border: 0;
+    border-radius: 9999px;
+    background: #e53935;
+    color: #fff;
+    box-shadow: 0 16px 40px rgba(229, 57, 53, 0.34);
+    transition: transform 160ms ease, background 160ms ease, box-shadow 160ms ease;
+  }
+
+  .voice-sos-button:hover:not(:disabled) {
+    transform: translateY(-1px);
+    background: #c62828;
+  }
+
+  .voice-sos-button:disabled {
+    cursor: not-allowed;
+    opacity: 0.8;
+  }
+
+  .voice-sos-button-recording {
+    animation: voice-sos-blink 900ms ease-in-out infinite;
+    box-shadow: 0 0 0 10px rgba(229, 57, 53, 0.14), 0 18px 44px rgba(229, 57, 53, 0.36);
+  }
+
+  .voice-sos-button-success {
+    background: #16a34a;
+    box-shadow: 0 16px 40px rgba(22, 163, 74, 0.3);
+  }
+
+  .voice-sos-ring {
+    position: absolute;
+    inset: -8px;
+    border-radius: 9999px;
+    border: 2px solid rgba(229, 57, 53, 0.25);
+    opacity: 0;
+  }
+
+  .voice-sos-button-recording .voice-sos-ring {
+    animation: voice-sos-pulse 1.25s ease-out infinite;
+    opacity: 1;
+  }
+
+  .voice-sos-icon {
+    position: relative;
+    z-index: 1;
+    display: inline-flex;
+    height: 24px;
+    width: 24px;
+  }
+
+  .voice-sos-tooltip {
+    min-width: 240px;
+    max-width: 280px;
+    border: 1px solid rgba(255, 255, 255, 0.92);
+    border-radius: 18px;
+    background: rgba(15, 23, 42, 0.92);
+    color: #fff;
+    padding: 14px 16px;
+    box-shadow: 0 18px 46px rgba(15, 23, 42, 0.24);
+  }
+
+  .voice-sos-tooltip-title {
+    margin: 0;
+    font-size: 0.92rem;
+    font-weight: 800;
+    letter-spacing: -0.02em;
+  }
+
+  .voice-sos-tooltip-copy {
+    margin: 6px 0 0;
+    font-size: 0.82rem;
+    line-height: 1.5;
+    color: rgba(255, 255, 255, 0.84);
+  }
+
+  .voice-sos-tooltip-hint {
+    margin: 10px 0 0;
+    font-size: 0.72rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: rgba(255, 255, 255, 0.64);
+  }
+
+  .voice-sos-tooltip-hint span {
+    color: #fff;
+    font-weight: 800;
+  }
+}
+
+@keyframes voice-sos-pulse {
+  0% {
+    transform: scale(0.98);
+    opacity: 0.9;
+  }
+  70% {
+    transform: scale(1.24);
+    opacity: 0;
+  }
+  100% {
+    transform: scale(1.24);
+    opacity: 0;
+  }
+}
+
+@keyframes voice-sos-blink {
+  0%, 100% {
+    background: #e53935;
+  }
+  50% {
+    background: #ff6b63;
+  }
 }

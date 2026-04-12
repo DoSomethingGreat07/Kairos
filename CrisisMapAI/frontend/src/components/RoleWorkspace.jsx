@@ -7,10 +7,12 @@ const RoleWorkspace = ({ session }) => {
   const [dashboard, setDashboard] = useState(null)
   const [victimIncidents, setVictimIncidents] = useState([])
   const [loading, setLoading] = useState(true)
+  const [error, setError] = useState('')
 
   useEffect(() => {
     const load = async () => {
       try {
+        setError('')
         const requests = [getProfile(session.role, session.subject_id)]
         if (session.role === 'victim') requests.push(getVictimIncidents(session.subject_id))
         if (session.role === 'organization') requests.push(getDashboardData())
@@ -27,6 +29,10 @@ const RoleWorkspace = ({ session }) => {
         }
       } catch (error) {
         console.error('Workspace load failed:', error)
+        setError(error?.response?.data?.detail || 'Unable to load your workspace right now.')
+        setProfile(null)
+        setDashboard(null)
+        setVictimIncidents([])
       } finally {
         setLoading(false)
       }
@@ -104,6 +110,20 @@ const RoleWorkspace = ({ session }) => {
   }, [profile, profileData, session])
 
   if (loading) return <div className="panel text-center py-16 text-slate-500">Loading your workspace...</div>
+  if (error) {
+    return (
+      <div className="workspace-page">
+        <section className="workspace-page-hero">
+          <p className="workspace-kicker">{session.role} workspace</p>
+          <h1 className="workspace-page-title">Workspace Unavailable</h1>
+          <p className="workspace-page-copy">{error}</p>
+          <div className="mt-8 flex flex-wrap justify-center gap-3">
+            <Link to="/account" className="button-primary min-w-[220px]">Review Account Session</Link>
+          </div>
+        </section>
+      </div>
+    )
+  }
 
   return (
     <div className="workspace-page">

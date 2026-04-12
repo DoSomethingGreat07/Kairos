@@ -125,3 +125,18 @@ export const updateProfile = async (payload) => {
   const response = await apiClient.put('/api/profiles', payload)
   return response.data
 }
+
+export const transcribeAudioWithElevenLabs = async (audioBlob, session) => {
+  const formData = new FormData()
+  formData.append('subject_id', session.subject_id)
+  formData.append('role', session.role)
+  formData.append('audio', audioBlob, `voice-sos.${audioBlob.type.includes('webm') ? 'webm' : 'wav'}`)
+
+  const response = await apiClient.post('/api/voice/transcribe', formData, {
+    headers: {
+      'Content-Type': 'multipart/form-data',
+    },
+  })
+  const data = response.data || {}
+  return data.transcript || ''
+}

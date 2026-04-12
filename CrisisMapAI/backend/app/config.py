@@ -1,3 +1,6 @@
+
+from dotenv import load_dotenv
+load_dotenv()
 from pydantic_settings import BaseSettings
 from typing import Optional
 
@@ -15,6 +18,11 @@ class Settings(BaseSettings):
 
     # OpenAI Configuration
     openai_api_key: Optional[str] = None
+
+    # ElevenLabs Speech-to-Text Configuration
+    elevenlabs_api_key: Optional[str] = None
+    elevenlabs_stt_model_id: str = "scribe_v1"
+    elevenlabs_stt_mode: str = "cloud"
 
     # Twilio Configuration (optional)
     twilio_account_sid: Optional[str] = None

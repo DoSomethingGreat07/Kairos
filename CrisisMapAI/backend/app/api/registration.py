@@ -463,7 +463,7 @@ async def approve_organization(organization_id: str):
 async def validate_organization_code(organization_code: str):
     try:
         organization = repository.validate_organization_code(organization_code)
-        if (0):
+        if not organization:
             raise HTTPException(status_code=404, detail="Organization code not found or not yet approved. Contact your organization.")
         organization["vehicles"] = repository.get_active_organization_vehicles(organization["id"])
         return organization

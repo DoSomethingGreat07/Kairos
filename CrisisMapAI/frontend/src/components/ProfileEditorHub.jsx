@@ -15,6 +15,14 @@ const ProfileEditorHub = ({ session: externalSession, onLoggedIn, onLoggedOut })
   const [message, setMessage] = useState('')
   const [error, setError] = useState('')
 
+  const clearSession = () => {
+    window.localStorage.removeItem(sessionKey)
+    setSession(null)
+    setProfile(null)
+    setEditableProfile('')
+    onLoggedOut?.()
+  }
+
   useEffect(() => {
     if (externalSession !== undefined) {
       setSession(externalSession || null)
@@ -25,11 +33,18 @@ const ProfileEditorHub = ({ session: externalSession, onLoggedIn, onLoggedOut })
     const loadProfile = async () => {
       if (!session) return
       try {
+        setError('')
         const result = await getProfile(session.role, session.subject_id)
         setProfile(result)
         setEditableProfile(JSON.stringify(result.profile_data || {}, null, 2))
       } catch (loadError) {
-        setError(loadError?.response?.data?.detail || 'Unable to load profile.')
+        const detail = loadError?.response?.data?.detail || 'Unable to load profile.'
+        if (loadError?.response?.status === 404) {
+          setError(`${detail} Please log in again so we can refresh the active profile mapping.`)
+          clearSession()
+          return
+        }
+        setError(detail)
       }
     }
     loadProfile()
@@ -52,13 +67,7 @@ const ProfileEditorHub = ({ session: externalSession, onLoggedIn, onLoggedOut })
     }
   }
 
-  const logout = () => {
-    window.localStorage.removeItem(sessionKey)
-    setSession(null)
-    setProfile(null)
-    setEditableProfile('')
-    onLoggedOut?.()
-  }
+  const logout = () => clearSession()
 
   if (!session) {
     return (

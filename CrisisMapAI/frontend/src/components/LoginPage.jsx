@@ -1,12 +1,17 @@
 import React, { useState } from 'react'
 import { Link } from 'react-router-dom'
 import LoginHub from './LoginHub'
+import VoiceSOSButton from './VoiceSOSButton'
 
 const LoginPage = ({ session, onLoggedIn, onLoggedOut }) => {
   const [localSession, setLocalSession] = useState(session)
+  const activeSession = localSession || session
 
   return (
     <div className="mx-auto max-w-4xl w-full space-y-8 py-12 px-4 flex flex-col justify-center min-h-[70vh]">
+      <div className="w-full flex justify-center">
+        <VoiceSOSButton session={activeSession} />
+      </div>
       <section className="panel page-hero text-center items-center flex flex-col">
         <div>
           <p className="section-kicker">Login</p>
@@ -20,12 +25,12 @@ const LoginPage = ({ session, onLoggedIn, onLoggedOut }) => {
         </Link>
       </section>
 
-      {(localSession || session) ? (
+      {activeSession ? (
         <section className="panel text-center flex flex-col items-center">
           <p className="section-kicker">Active session</p>
           <h3 className="panel-title mt-2">You are already logged in</h3>
           <p className="panel-subtitle mt-2">
-            Signed in as <span className="font-semibold capitalize text-slate-900">{(localSession || session).role}</span> with identifier <span className="font-semibold text-slate-900">{(localSession || session).login_identifier}</span>.
+            Signed in as <span className="font-semibold capitalize text-slate-900">{activeSession.role}</span> with identifier <span className="font-semibold text-slate-900">{activeSession.login_identifier}</span>.
           </p>
           <div className="mt-8 flex flex-wrap justify-center gap-3">
             <Link to="/workspace" className="button-primary">Open workspace</Link>
