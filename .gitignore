@@ -1,3 +1,43 @@
 .DS_Store
-.rocketride/
+**/.DS_Store
+
+# Local env files
 .env
+**/.env
+!.env.example
+!**/.env.example
+
+# Python
+__pycache__/
+**/__pycache__/
+*.py[cod]
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+.coverage.*
+htmlcov/
+
+# Virtual environments
+venv/
+.venv/
+env/
+crisis_env/
+
+# Frontend
+node_modules/
+**/node_modules/
+dist/
+**/dist/
+.vite/
+**/.vite/
+
+# Editor / local tooling
+.vscode/
+.idea/
+.rocketride/
+.claude/
+
+# Logs and generated local artifacts
+*.log
+sql/queries_executed.log
