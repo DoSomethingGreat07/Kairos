@@ -1,9 +1,10 @@
 import React, { useState } from 'react'
-import { Link } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
 import LoginHub from './LoginHub'
 import VoiceSOSButton from './VoiceSOSButton'
 
 const LoginPage = ({ session, onLoggedIn, onLoggedOut }) => {
+  const navigate = useNavigate()
   const [localSession, setLocalSession] = useState(session)
   const activeSession = localSession || session
 
@@ -42,6 +43,7 @@ const LoginPage = ({ session, onLoggedIn, onLoggedOut }) => {
                 window.localStorage.removeItem('crisismap_session')
                 setLocalSession(null)
                 onLoggedOut?.()
+                navigate('/', { replace: true })
               }}
             >
               Log out
@@ -53,6 +55,7 @@ const LoginPage = ({ session, onLoggedIn, onLoggedOut }) => {
           onLoggedIn={(nextSession) => {
             setLocalSession(nextSession)
             onLoggedIn?.(nextSession)
+            navigate('/workspace', { replace: true })
           }}
         />
       )}

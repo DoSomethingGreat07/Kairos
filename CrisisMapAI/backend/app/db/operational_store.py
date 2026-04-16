@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from datetime import datetime
 from pathlib import Path
 from typing import Any, Dict, Iterable, List, Optional
 import csv
@@ -44,6 +45,17 @@ class OperationalRepository:
 
     def __init__(self, client: Optional[PostgresClient] = None) -> None:
         self.client = client or PostgresClient()
+
+    def _has_column(self, table_name: str, column_name: str) -> bool:
+        query = """
+        SELECT 1
+        FROM information_schema.columns
+        WHERE table_schema = 'public'
+          AND table_name = %(table_name)s
+          AND column_name = %(column_name)s
+        LIMIT 1
+        """
+        return self.client.fetch_one(query, {"table_name": table_name, "column_name": column_name}) is not None
 
     def _resolve_zone_id(self, zone_value: Any) -> Optional[str]:
         if not zone_value:
@@ -611,15 +623,15 @@ class OperationalRepository:
         payload = {
             "sos_id": incident_record["sos_id"],
             "zone_id": self._resolve_zone_id(incident_record.get("zone")),
-            "disaster_type": incident_record.get("disaster_type"),
+            "disaster_type": incident_record.get("disaster_type") or "unknown",
             "severity": incident_record.get("severity") or incident_record.get("inferred_severity") or "medium",
-            "needs_oxygen": incident_record.get("needs_oxygen", incident_record.get("oxygen_required", False)),
-            "people_count": incident_record.get("people_count", 1),
-            "created_at": incident_record.get("created_at"),
-            "latitude": incident_record.get("latitude", 0.0),
-            "longitude": incident_record.get("longitude", 0.0),
+            "needs_oxygen": incident_record.get("needs_oxygen", incident_record.get("oxygen_required", False)) or False,
+            "people_count": incident_record.get("people_count") or 1,
+            "created_at": incident_record.get("created_at") or datetime.utcnow(),
+            "latitude": incident_record.get("latitude") if incident_record.get("latitude") is not None else 0.0,
+            "longitude": incident_record.get("longitude") if incident_record.get("longitude") is not None else 0.0,
             "required_skill": incident_record.get("required_skill"),
-            "is_elderly": incident_record.get("is_elderly", incident_record.get("elderly", False)),
+            "is_elderly": incident_record.get("is_elderly", incident_record.get("elderly", False)) or False,
             "priority_score": incident_record.get("priority_score"),
             "inferred_severity": incident_record.get("inferred_severity"),
             "incident_data": incident_record,
@@ -854,19 +866,108 @@ class OperationalRepository:
         return self.client.fetch_all(query, {"limit": limit})
 
     def list_incidents_for_victim(self, victim_profile_id: str, limit: int = 25) -> List[Dict[str, Any]]:
-        query = """
+        victim_selector = """
+        COALESCE(
+            incident_data->'registered_victim_profile'->>'victim_profile_id',
+            incident_data->>'victim_profile_id'
+        )
+        """
+        if self._has_column("sos_incidents", "victim_profile_id"):
+            victim_selector = f"""
+            COALESCE(
+                victim_profile_id::text,
+                {victim_selector.strip()}
+            )
+            """
+
+        query = f"""
         SELECT sos_id, zone_id, disaster_type, severity, needs_oxygen, people_count,
                created_at, latitude, longitude, required_skill, is_elderly,
                priority_score, inferred_severity, incident_data
         FROM sos_incidents
-        WHERE COALESCE(
-            incident_data->'registered_victim_profile'->>'victim_profile_id',
-            incident_data->>'victim_profile_id'
-        ) = %(victim_profile_id)s
+        WHERE {victim_selector} = %(victim_profile_id)s
         ORDER BY created_at DESC
         LIMIT %(limit)s
         """
         return self.client.fetch_all(query, {"victim_profile_id": victim_profile_id, "limit": limit})
+
+    def list_incidents_for_organization(
+        self,
+        organization_id: str,
+        coverage_zone_ids: List[str] | None = None,
+        limit: int = 50,
+    ) -> List[Dict[str, Any]]:
+        coverage_zone_ids = [zone for zone in (coverage_zone_ids or []) if zone]
+        query = """
+        WITH latest_assignments AS (
+            SELECT DISTINCT ON (har.sos_id)
+                har.sos_id,
+                har.responder_id
+            FROM hungarian_assignment_results har
+            ORDER BY har.sos_id, har.executed_at DESC
+        )
+        SELECT DISTINCT
+            si.sos_id, si.zone_id, si.disaster_type, si.severity, si.needs_oxygen, si.people_count,
+            si.created_at, si.latitude, si.longitude, si.required_skill, si.is_elderly,
+            si.priority_score, si.inferred_severity, si.incident_data
+        FROM sos_incidents si
+        LEFT JOIN latest_assignments la
+            ON la.sos_id = si.sos_id
+        LEFT JOIN responders r
+            ON r.id::text = la.responder_id
+            OR r.responder_id = la.responder_id
+        WHERE (
+            r.organization_id = %(organization_id)s::uuid
+            OR (
+                %(has_coverage)s = TRUE
+                AND si.zone_id = ANY(%(coverage_zone_ids)s::text[])
+            )
+        )
+        ORDER BY si.created_at DESC
+        LIMIT %(limit)s
+        """
+        return self.client.fetch_all(
+            query,
+            {
+                "organization_id": organization_id,
+                "coverage_zone_ids": coverage_zone_ids,
+                "has_coverage": bool(coverage_zone_ids),
+                "limit": limit,
+            },
+        )
+
+    def list_incidents_for_responder(self, responder_id: str, limit: int = 25) -> List[Dict[str, Any]]:
+        query = """
+        WITH latest_assignments AS (
+            SELECT DISTINCT ON (har.sos_id)
+                har.sos_id,
+                har.responder_id
+            FROM hungarian_assignment_results har
+            ORDER BY har.sos_id, har.executed_at DESC
+        )
+        SELECT DISTINCT
+            si.sos_id, si.zone_id, si.disaster_type, si.severity, si.needs_oxygen, si.people_count,
+            si.created_at, si.latitude, si.longitude, si.required_skill, si.is_elderly,
+            si.priority_score, si.inferred_severity, si.incident_data
+        FROM sos_incidents si
+        INNER JOIN latest_assignments la
+            ON la.sos_id = si.sos_id
+        INNER JOIN responders r
+            ON (
+                r.id::text = la.responder_id
+                OR r.responder_id = la.responder_id
+            )
+        WHERE r.id = %(responder_id)s::uuid
+        ORDER BY si.created_at DESC
+        LIMIT %(limit)s
+        """
+        return self.client.fetch_all(
+            query,
+            {
+                "responder_id": responder_id,
+                "limit": limit,
+            },
+        )
 
     def get_table_count(self, table_name: str, id_column: str) -> Dict[str, int]:
         query = f"""

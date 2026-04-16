@@ -1,33 +1,42 @@
-import React, { useEffect, useMemo, useState } from 'react'
-import { MapContainer, Marker, Popup, TileLayer } from 'react-leaflet'
-import 'leaflet/dist/leaflet.css'
-import L from 'leaflet'
-import { getIncidents } from '../api/client'
+import React, { useEffect, useState } from 'react'
 
-delete L.Icon.Default.prototype._getIconUrl
-L.Icon.Default.mergeOptions({
-  iconRetinaUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon-2x.png',
-  iconUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon.png',
-  shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-shadow.png',
-})
-
-const defaultCenter = [40.7128, -74.006]
+import { getIncidentDetails, getIncidents, getResponderIncidents } from '../api/client'
+import OperationsMap from './OperationsMap'
 
 const IncidentMap = ({ incidents: incidentsProp }) => {
+  const [sessionScope] = useState(() => {
+    try {
+      const session = JSON.parse(window.localStorage.getItem('crisismap_session') || 'null')
+      return {
+        organizationId: session?.role === 'organization' ? session.subject_id : null,
+        responderId: session?.role === 'responder' ? session.subject_id : null,
+      }
+    } catch {
+      return { organizationId: null, responderId: null }
+    }
+  })
   const [incidents, setIncidents] = useState([])
+  const [selectedIncident, setSelectedIncident] = useState(null)
   const [loading, setLoading] = useState(!incidentsProp)
 
   useEffect(() => {
     if (incidentsProp) {
       setIncidents(incidentsProp)
+      setSelectedIncident(incidentsProp[0] || null)
       setLoading(false)
       return undefined
     }
 
     const fetchIncidents = async () => {
       try {
-        const data = await getIncidents()
+        const data = sessionScope.responderId
+          ? await getResponderIncidents(sessionScope.responderId)
+          : await getIncidents(sessionScope.organizationId)
         setIncidents(data)
+        if (data[0]) {
+          const detail = await getIncidentDetails(data[0].sos_id || data[0].id)
+          setSelectedIncident(detail)
+        }
       } catch (error) {
         console.error('Error fetching incidents:', error)
       } finally {
@@ -37,42 +46,38 @@ const IncidentMap = ({ incidents: incidentsProp }) => {
 
     fetchIncidents()
     return undefined
-  }, [incidentsProp])
-
-  const markers = useMemo(() => incidents.map((incident, index) => ({
-    ...incident,
-    latitude: incident.latitude || defaultCenter[0] + index * 0.03,
-    longitude: incident.longitude || defaultCenter[1] + index * 0.03,
-  })), [incidents])
+  }, [incidentsProp, sessionScope])
 
   if (loading) {
-    return <div className="panel text-center py-16 text-slate-500">Loading map...</div>
+    return <div className="panel text-center py-16 text-slate-500">Loading operations map...</div>
   }
 
   return (
-    <div className="overflow-hidden rounded-[24px] border border-slate-100">
-      <div className="h-[460px] w-full">
-        <MapContainer center={defaultCenter} zoom={10} style={{ height: '100%', width: '100%' }}>
-          <TileLayer
-            url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-            attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-          />
-          {markers.map((incident) => (
-            <Marker key={incident.id} position={[incident.latitude, incident.longitude]}>
-              <Popup>
-                <div className="min-w-[180px]">
-                  <h3 className="text-base font-bold capitalize">{incident.disaster_type}</h3>
-                  <p>Zone: {incident.zone}</p>
-                  <p>Severity: {incident.severity}</p>
-                  <p>Status: {incident.status}</p>
-                  <p>People: {incident.people_count}</p>
-                  {incident.responder?.name && <p>Responder: {incident.responder.name}</p>}
-                </div>
-              </Popup>
-            </Marker>
+    <div className="space-y-5">
+      <OperationsMap incident={selectedIncident} incidents={incidents} />
+      {incidents.length > 1 && (
+        <div className="grid gap-3 md:grid-cols-3">
+          {incidents.map((incident) => (
+            <button
+              key={incident.id}
+              type="button"
+              onClick={async () => {
+                const detail = await getIncidentDetails(incident.sos_id || incident.id)
+                setSelectedIncident(detail)
+              }}
+              className={`rounded-[20px] border p-4 text-left transition ${
+                selectedIncident?.id === incident.id
+                  ? 'border-cyan-300 bg-cyan-50'
+                  : 'border-slate-200 bg-white hover:border-slate-300'
+              }`}
+            >
+              <p className="text-xs font-bold uppercase tracking-[0.18em] text-slate-500">{incident.zone || 'Unknown zone'}</p>
+              <p className="mt-2 text-base font-black capitalize text-slate-950">{incident.disaster_type || 'Emergency'}</p>
+              <p className="mt-1 text-sm text-slate-500">{incident.status || 'received'}</p>
+            </button>
           ))}
-        </MapContainer>
-      </div>
+        </div>
+      )}
     </div>
   )
 }

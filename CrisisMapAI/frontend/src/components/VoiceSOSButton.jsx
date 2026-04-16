@@ -335,7 +335,8 @@ const VoiceSOSButton = ({ session }) => {
     setHasTriggered(true)
     setStatus('submitted')
     setFeedback('SOS Sent Successfully')
-    navigate(`/victim/${response.sos_id}`)
+    const victimId = session?.subject_id || ''
+    navigate(`/victim/${response.sos_id}${victimId ? `?victimId=${victimId}` : ''}`)
   }
 
   const startVoiceFlow = async () => {

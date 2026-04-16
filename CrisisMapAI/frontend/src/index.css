@@ -234,19 +234,31 @@
   }
 
   .workspace-page {
-    @apply mx-auto flex max-w-6xl flex-col gap-8 pb-16;
+    @apply mx-auto flex max-w-7xl flex-col gap-6 pb-12;
   }
 
   .workspace-page-hero {
-    @apply flex flex-col items-center rounded-[34px] border border-white/90 bg-white px-8 py-12 text-center shadow-[0_26px_90px_rgba(15,23,42,0.08)];
+    @apply rounded-[34px] border border-white/90 bg-white px-6 py-7 shadow-[0_26px_90px_rgba(15,23,42,0.08)] lg:px-8;
+  }
+
+  .workspace-hero-grid {
+    @apply grid items-center gap-6 lg:grid-cols-[minmax(0,1.4fr)_minmax(300px,0.8fr)];
+  }
+
+  .workspace-hero-actions {
+    @apply flex flex-wrap items-center justify-start gap-3 lg:justify-end;
+  }
+
+  .workspace-voice-wrap {
+    @apply w-full lg:flex lg:justify-end;
   }
 
   .workspace-page-title {
-    @apply mt-3 max-w-4xl text-5xl font-black tracking-tight text-slate-950;
+    @apply mt-2 max-w-4xl text-4xl font-black tracking-tight text-slate-950 lg:text-5xl;
   }
 
   .workspace-page-copy {
-    @apply mt-5 max-w-3xl text-lg leading-9 text-slate-600;
+    @apply mt-4 max-w-3xl text-base leading-8 text-slate-600 lg:text-lg;
   }
 
   .workspace-summary-grid {
@@ -254,23 +266,51 @@
   }
 
   .workspace-summary-card {
-    @apply rounded-[24px] border border-white/90 bg-white/90 p-5 shadow-[0_16px_48px_rgba(15,23,42,0.06)];
+    @apply rounded-[24px] border border-white/90 bg-white/90 p-6 shadow-[0_16px_48px_rgba(15,23,42,0.06)] min-h-[168px];
+  }
+
+  .workspace-summary-value {
+    @apply mt-4 text-3xl font-black tracking-tight text-slate-950 lg:text-[2rem];
   }
 
   .workspace-info-block {
-    @apply rounded-[30px] border border-white/90 bg-white p-7 shadow-[0_18px_56px_rgba(15,23,42,0.06)];
+    @apply rounded-[30px] border border-white/90 bg-white p-6 shadow-[0_18px_56px_rgba(15,23,42,0.06)] lg:p-7;
   }
 
   .workspace-section-title {
     @apply text-3xl font-black tracking-tight text-slate-950;
   }
 
+  .workspace-section-title-sm {
+    @apply text-2xl;
+  }
+
+  .workspace-content-grid {
+    @apply grid gap-6 xl:grid-cols-[minmax(0,1.5fr)_minmax(300px,0.72fr)];
+  }
+
+  .workspace-span-main {
+    @apply min-w-0;
+  }
+
+  .workspace-side-panel {
+    @apply rounded-[30px] border border-white/90 bg-white p-6 shadow-[0_18px_56px_rgba(15,23,42,0.06)] lg:p-7;
+  }
+
   .workspace-notes {
     @apply grid gap-5 md:grid-cols-2;
   }
 
+  .workspace-notes-compact {
+    @apply grid-cols-1 gap-4;
+  }
+
   .workspace-note-card {
-    @apply rounded-[26px] border border-white/90 bg-white/90 p-6 shadow-[0_16px_48px_rgba(15,23,42,0.05)];
+    @apply rounded-[26px] border border-white/90 bg-white/90 p-5 shadow-[0_16px_48px_rgba(15,23,42,0.05)];
+  }
+
+  .workspace-incidents-grid {
+    @apply grid gap-4 lg:grid-cols-2;
   }
 
   .button-primary {
@@ -388,6 +428,27 @@
   .voice-sos-tooltip-hint span {
     color: #fff;
     font-weight: 800;
+  }
+
+  .leaflet-div-icon-reset {
+    background: transparent;
+    border: 0;
+  }
+
+  .ops-map-marker {
+    @apply flex h-[26px] w-[26px] items-center justify-center rounded-full border-2 border-white text-[11px] font-black text-white shadow-[0_10px_24px_rgba(15,23,42,0.28)];
+  }
+
+  .ops-map-marker-incident {
+    background: linear-gradient(135deg, #fb7185 0%, #e11d48 100%);
+  }
+
+  .ops-map-marker-responder {
+    background: linear-gradient(135deg, #06b6d4 0%, #2563eb 100%);
+  }
+
+  .ops-map-marker-destination {
+    background: linear-gradient(135deg, #10b981 0%, #059669 100%);
   }
 }
 

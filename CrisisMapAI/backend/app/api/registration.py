@@ -52,6 +52,8 @@ class VictimIdentityStep(BaseModel):
     @model_validator(mode="after")
     def derive_age(self) -> "VictimIdentityStep":
         today = date.today()
+        if self.date_of_birth > today:
+            raise ValueError("Date of birth cannot be in the future.")
         self.age = today.year - self.date_of_birth.year - (
             (today.month, today.day) < (self.date_of_birth.month, self.date_of_birth.day)
         )
@@ -198,35 +200,51 @@ class OrganizationRegistrationRequest(BaseModel):
     authorization: OrganizationAuthorizationStep
 
 
+
+# Responder registration models
 class ResponderOrganizationStep(BaseModel):
     code: str
     name: str
     type: str
-    branch_name: str
+    contact_number: str
+    branch_name: Optional[str] = None
     branch_id: Optional[str] = None
     official_email: Optional[str] = None
-    contact_number: str
-    verification_status: str = "pending"
+    verification_status: Optional[str] = None
 
 
 class ResponderPersonalStep(BaseModel):
     full_name: str
-    responder_id: Optional[str] = None
     date_of_birth: date
-    gender: Optional[str] = None
     government_id_type: str
     government_id_number: str
+    responder_id: Optional[str] = None
+    gender: Optional[str] = None
     profile_photo_url: Optional[str] = None
+
+    @field_validator("date_of_birth")
+    @classmethod
+    def validate_dob_not_future(cls, value: date) -> date:
+        if value > date.today():
+            raise ValueError("Date of birth cannot be in the future.")
+        return value
 
 
 class ResponderRoleStep(BaseModel):
     primary_role: str
+    experience_years: Optional[int] = 0
+    rank: Optional[str] = None
     secondary_role: Optional[str] = None
     response_categories: List[str] = Field(default_factory=list)
-    experience_years: int = Field(default=0, ge=0)
-    rank: str
-    shift_type: str
+    shift_type: Optional[str] = None
     shelter_operations_experience: Optional[str] = None
+
+    @field_validator("experience_years", mode="before")
+    @classmethod
+    def coerce_experience_years(cls, v):
+        if v == "" or v is None:
+            return None
+        return v
 
 
 class ResponderStructuredCertification(BaseModel):
@@ -238,9 +256,9 @@ class ResponderStructuredCertification(BaseModel):
 
 class ResponderSkillsStep(BaseModel):
     capabilities: List[str] = Field(default_factory=list)
+    languages: List[str] = Field(default_factory=list)
     certifications: List[ResponderStructuredCertification] = Field(default_factory=list)
     special_medical_capabilities: List[str] = Field(default_factory=list)
-    languages: List[str] = Field(default_factory=list)
 
 
 class ResponderVehicleStep(BaseModel):
@@ -248,11 +266,18 @@ class ResponderVehicleStep(BaseModel):
     assigned_vehicle_id: Optional[str] = None
     vehicle_type: Optional[str] = None
     registration_number: Optional[str] = None
-    capacity: int = Field(default=1, ge=1)
+    capacity: Optional[int] = 1
     equipment: List[str] = Field(default_factory=list)
     operational_status: str = "Ready"
     driver_license_type: Optional[str] = None
     route_constraints: List[str] = Field(default_factory=list)
+
+    @field_validator("capacity", mode="before")
+    @classmethod
+    def coerce_capacity(cls, v):
+        if v == "" or v is None:
+            return None
+        return v
 
 
 class ResponderCoverageStep(BaseModel):
@@ -269,9 +294,9 @@ class ResponderCoverageStep(BaseModel):
 
 class ResponderContactStep(BaseModel):
     mobile: str
+    preferred_contact_method: str
     backup_contact: Optional[str] = None
     radio_call_sign: Optional[str] = None
-    preferred_contact_method: str
     emergency_contact_name: Optional[str] = None
     emergency_contact_number: Optional[str] = None
 
@@ -288,63 +313,25 @@ class ResponderVerificationStep(BaseModel):
 
 
 class ResponderAccountStep(BaseModel):
-    username: Optional[str] = None
     password: str = Field(min_length=8)
     terms_acknowledged: bool
     data_sharing_consent: bool
-    dispatch_location_consent: bool
+    dispatch_location_consent: bool = False
+    username: Optional[str] = None
 
 
 class ResponderRegistrationRequest(BaseModel):
     draft_id: Optional[str] = None
-    current_step: int = Field(default=6, ge=6, le=6)
+    current_step: Optional[int] = None
     organization: ResponderOrganizationStep
     personal: ResponderPersonalStep
     role: ResponderRoleStep
     skills: ResponderSkillsStep
-    vehicle: ResponderVehicleStep
-    coverage: ResponderCoverageStep
+    vehicle: Optional[ResponderVehicleStep] = None
+    coverage: Optional[ResponderCoverageStep] = None
     contact: ResponderContactStep
-    verification: ResponderVerificationStep
+    verification: Optional[ResponderVerificationStep] = None
     account: ResponderAccountStep
-
-    @model_validator(mode="after")
-    def validate_conditional_requirements(self) -> "ResponderRegistrationRequest":
-        primary_role = self.role.primary_role
-        vehicle_roles = {"Ambulance Driver", "Firefighter", "Rescue Operator", "Logistics Staff", "Boat Operator", "Helicopter Operator"}
-        medical_roles = {"Paramedic", "Medical Staff"}
-        transport_roles = {"Boat Operator", "Helicopter Operator"}
-
-        if not self.skills.capabilities:
-            raise ValueError("At least one skill is required.")
-        if not self.skills.languages:
-            raise ValueError("At least one language is required.")
-        if primary_role == "Shelter Coordinator" and not (self.role.shelter_operations_experience or "").strip():
-            raise ValueError("Shelter coordinators must provide shelter operations experience.")
-        if primary_role in vehicle_roles and self.vehicle.assigned:
-            if not self.vehicle.vehicle_type or not self.vehicle.registration_number:
-                raise ValueError("Assigned vehicle roles require vehicle type and registration number.")
-        if primary_role in {"Ambulance Driver", "Boat Operator", "Helicopter Operator"}:
-            if not (self.vehicle.driver_license_type or "").strip():
-                raise ValueError("This transport role requires a driver or permit type.")
-            if not (self.verification.driver_license_url or "").strip():
-                raise ValueError("This transport role requires a driver license upload.")
-        if primary_role in medical_roles:
-            if not (self.verification.medical_license_url or "").strip():
-                raise ValueError("Medical responders must upload a medical license.")
-            if not (self.verification.certification_proof_url or "").strip():
-                raise ValueError("Medical responders must upload certification proof.")
-        if primary_role in transport_roles:
-            certs = [cert for cert in self.skills.certifications if cert.certification_name or cert.certification_number]
-            if not certs:
-                raise ValueError("Special transport roles require at least one certification.")
-            if any(cert.expiry_date is None for cert in certs):
-                raise ValueError("Special transport certifications require expiry dates.")
-            if any(not (cert.proof_url or "").strip() for cert in certs):
-                raise ValueError("Special transport certifications require proof URLs.")
-        if not self.account.terms_acknowledged or not self.account.data_sharing_consent or not self.account.dispatch_location_consent:
-            raise ValueError("All account acknowledgements and operational consents are required.")
-        return self
 
 
 @router.get("/registration/zones", response_model=List[ZoneDefinitionResponse])
@@ -525,8 +512,8 @@ def build_responder_storage_payload(payload: Dict[str, Any]) -> Dict[str, Any]:
             "date_of_birth": personal["date_of_birth"],
             "preferred_language": skills["languages"][0] if skills.get("languages") else None,
             "home_base": organization.get("branch_name"),
-            "profile_photo_url": personal.get("profile_photo_url"),
-            "years_of_experience": role.get("experience_years", 0),
+            "profile_photo_url": personal.get("profile_photo_url") or "",
+            "years_of_experience": role.get("experience_years", 0) or 0,
             "password": account["password"],
         },
         "capability_profile": {

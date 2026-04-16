@@ -12,9 +12,9 @@ from ..operations.default_data import responder_definitions, zone_definitions
 
 
 class ResponderAssignment:
-    def __init__(self, responders: Optional[List[Dict[str, Any]]] = None) -> None:
+    def __init__(self, responders: Optional[List[Dict[str, Any]]] = None, zones: Optional[List[Dict[str, Any]]] = None) -> None:
         self.responders = responders or responder_definitions()
-        self.zone_lookup = {zone["id"]: zone for zone in zone_definitions()}
+        self.zone_lookup = {zone["id"]: zone for zone in (zones or zone_definitions())}
 
     def assign_responder(
         self,

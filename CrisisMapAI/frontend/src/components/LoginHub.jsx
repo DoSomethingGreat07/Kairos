@@ -114,7 +114,7 @@ const LoginHub = ({ onLoggedIn }) => {
         <span className="text-sm font-semibold text-slate-700">{label}</span>
         <input className="input-shell" value={identifier} onChange={(e) => setIdentifier(e.target.value)} />
         <span className="mt-1 block text-xs text-slate-500">
-          {role === 'victim' ? 'Use the phone number or email saved during victim registration.' : role === 'organization' ? 'Use the organization registration number submitted during onboarding.' : 'Use the employee ID or badge number stored during responder registration.'}
+          {role === 'victim' ? 'Use the phone number or email saved during registration.' : role === 'organization' ? 'Use the organization registration number submitted during onboarding.' : 'Use the employee ID or badge number stored during responder registration.'}
         </span>
       </label>
       {mode === 'password' ? (

@@ -1,4 +1,5 @@
 import React, { useEffect, useMemo, useState } from 'react'
+import { Link } from 'react-router-dom'
 import RegistrationStepLayout from './RegistrationStepLayout'
 import ZoneMapPicker from './ZoneMapPicker'
 import { getRegistrationDraft, getRegistrationZones, saveRegistrationDraft, saveVictimTier1, saveVictimTier2 } from '../api/client'
@@ -271,6 +272,7 @@ const VictimRegistrationFlow = ({ onBackToRoles }) => {
           <button type="button" className="button-primary mt-5" onClick={onBackToRoles}>
             Return to Role Selection
           </button>
+          <Link to="/login" className="button-soft mt-3 inline-block text-center">Go to Login</Link>
         </section>
       </div>
     )
@@ -316,10 +318,10 @@ const VictimRegistrationFlow = ({ onBackToRoles }) => {
             </label>
             <label>
               <span className="text-sm font-semibold text-slate-700">Date of birth <span className="badge badge-critical">Required</span></span>
-              <input className="input-shell" type="date" value={formState.identity.date_of_birth} onChange={(e) => updateNested('identity', 'date_of_birth', e.target.value)} />
-              <p className="mt-2 text-sm text-slate-500">Registrant must be at least 5 years old.</p>
+              <input className="input-shell" type="date" max={new Date().toISOString().split('T')[0]} value={formState.identity.date_of_birth} onChange={(e) => updateNested('identity', 'date_of_birth', e.target.value)} />
+              <p className="mt-2 text-sm text-slate-500">Registrant must be at least 5 years old. Date cannot be in the future.</p>
               {formState.identity.date_of_birth && !validateIdentity(formState.identity) && (
-                <p className="mt-2 text-sm text-rose-600">Enter a valid date of birth for someone age 5 or older.</p>
+                <p className="mt-2 text-sm text-rose-600">{new Date(formState.identity.date_of_birth) > new Date() ? 'Date of birth cannot be in the future.' : 'Enter a valid date of birth for someone age 5 or older.'}</p>
               )}
             </label>
             <label>
@@ -576,6 +578,7 @@ const validateIdentity = (identity) => {
   if (!identity.date_of_birth) return false
   const dob = new Date(identity.date_of_birth)
   const today = new Date()
+  if (dob > today) return false
   const age = today.getFullYear() - dob.getFullYear() - (
     today.getMonth() < dob.getMonth() || (today.getMonth() === dob.getMonth() && today.getDate() < dob.getDate())
   )

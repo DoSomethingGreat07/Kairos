@@ -1,6 +1,6 @@
 import React, { useEffect, useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
-import { getDashboardData } from '../api/client'
+import { getDashboardData, getResponderDashboardData } from '../api/client'
 
 const statusTone = {
   assigned: 'badge badge-medium',
@@ -9,14 +9,32 @@ const statusTone = {
   resolved: 'badge badge-low',
 }
 
+const responderStatusTone = (status) => {
+  const normalized = String(status || '').toLowerCase()
+  if (normalized === 'available') return 'bg-emerald-100 text-emerald-800 border-emerald-200'
+  if (normalized === 'busy' || normalized === 'assigned') return 'bg-amber-100 text-amber-800 border-amber-200'
+  return 'bg-slate-100 text-slate-700 border-slate-200'
+}
+
 const Dashboard = () => {
+  const session = useMemo(() => {
+    try {
+      return JSON.parse(window.localStorage.getItem('crisismap_session') || 'null')
+    } catch {
+      return null
+    }
+  }, [])
+  const organizationId = session?.role === 'organization' ? session.subject_id : null
+  const responderId = session?.role === 'responder' ? session.subject_id : null
   const [dashboardData, setDashboardData] = useState(null)
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const data = await getDashboardData()
+        const data = responderId
+          ? await getResponderDashboardData(responderId)
+          : await getDashboardData(organizationId)
         setDashboardData(data)
       } catch (error) {
         console.error('Error fetching dashboard data:', error)
@@ -26,7 +44,7 @@ const Dashboard = () => {
     }
 
     fetchData()
-  }, [])
+  }, [organizationId, responderId])
 
   const utilization = useMemo(() => {
     if (!dashboardData) return 0
@@ -137,6 +155,60 @@ const Dashboard = () => {
           </div>
         </div>
       </section>
+
+      {session?.role === 'organization' && (
+        <section className="panel">
+          <p className="section-kicker">Readiness Snapshot</p>
+          <h3 className="panel-title mt-2">Operational badges</h3>
+          <div className="mt-5 flex flex-wrap gap-2">
+            {[
+              dashboardData?.responders?.length ? `${dashboardData.responders.length} responders linked` : 'No responders linked',
+              (dashboardData?.availableResponders || 0) > 0 ? 'Responders available' : 'No responders currently available',
+              (dashboardData?.ownedShelterCapacity || 0) > 0 ? 'Shelter resources active' : 'Shelter resources not configured',
+              (dashboardData?.medicalBayCapacity || 0) > 0 ? 'Medical bay support available' : 'No medical bay capacity',
+              (dashboardData?.hospitalCapacity || 0) < 85 ? 'Hospital load manageable' : 'Hospital load elevated',
+            ].map((badge) => (
+              <span key={badge} className="rounded-full border border-slate-200 bg-slate-50 px-3 py-1.5 text-xs font-bold uppercase tracking-[0.12em] text-slate-700">
+                {badge}
+              </span>
+            ))}
+          </div>
+        </section>
+      )}
+
+      {session?.role === 'organization' && (
+        <section className="panel">
+          <p className="section-kicker">Linked Responders</p>
+          <h3 className="panel-title mt-2">Organization roster and live availability</h3>
+          {(dashboardData?.responders || []).length > 0 ? (
+            <div className="mt-5 grid gap-3 md:grid-cols-2 xl:grid-cols-3">
+              {dashboardData.responders.map((responder) => (
+                <div key={responder.id || responder.responder_id || responder.employee_id} className="rounded-[20px] border border-slate-200 bg-slate-50 px-4 py-4">
+                  <div className="flex items-start justify-between gap-3">
+                    <div>
+                      <p className="text-base font-black text-slate-950">{responder.full_name || 'Unnamed responder'}</p>
+                      <p className="mt-1 text-xs font-semibold uppercase tracking-[0.14em] text-slate-500">
+                        {responder.responder_type || responder.role_title || 'Responder'}
+                      </p>
+                    </div>
+                    <span className={`rounded-full border px-2.5 py-1 text-[11px] font-bold uppercase tracking-[0.14em] ${responderStatusTone(responder.availability_status || responder.status)}`}>
+                      {(responder.availability_status || responder.status || 'unknown').replace('_', ' ')}
+                    </span>
+                  </div>
+                  <div className="mt-4 space-y-1 text-sm text-slate-600">
+                    <p><span className="font-semibold text-slate-800">Employee ID:</span> {responder.employee_id || 'Not set'}</p>
+                    <p><span className="font-semibold text-slate-800">Responder ID:</span> {responder.responder_id || 'Not set'}</p>
+                  </div>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <div className="mt-5 rounded-[20px] border border-dashed border-slate-300 bg-slate-50 px-4 py-5 text-sm text-slate-500">
+              No responders are currently linked to this organization.
+            </div>
+          )}
+        </section>
+      )}
     </div>
   )
 }

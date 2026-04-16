@@ -1,6 +1,6 @@
-import React, { useMemo, useState } from 'react'
+import React, { useEffect, useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
-import { submitSOS } from '../api/client'
+import { getProfile, submitSOS } from '../api/client'
 
 const disasterOptions = ['Fire', 'Flood', 'Earthquake', 'Storm', 'Landslide', 'Medical Emergency']
 const severityOptions = ['Low', 'Medium', 'High', 'Critical']
@@ -59,6 +59,9 @@ const initialFormData = {
   useCurrentLocation: false,
 }
 
+const sessionKey = 'crisismap_session'
+const sosDraftPrefix = 'crisismap_sos_draft'
+
 const phonePattern = /^\+?[0-9\s().-]{7,20}$/
 const numericPattern = /^-?\d+(\.\d+)?$/
 
@@ -97,6 +100,94 @@ const SOSForm = () => {
   const [submittedSosId, setSubmittedSosId] = useState('')
   const [locationStatus, setLocationStatus] = useState('')
   const [locating, setLocating] = useState(false)
+  const [draftLoaded, setDraftLoaded] = useState(false)
+  const [draftUpdatedAt, setDraftUpdatedAt] = useState('')
+  const [autoFilledFields, setAutoFilledFields] = useState([])
+
+  const session = useMemo(() => {
+    try {
+      return JSON.parse(window.localStorage.getItem(sessionKey) || 'null')
+    } catch {
+      return null
+    }
+  }, [])
+
+  const draftStorageKey = useMemo(
+    () => `${sosDraftPrefix}:${session?.subject_id || 'anonymous'}`,
+    [session]
+  )
+
+  useEffect(() => {
+    const restoreDraft = async () => {
+      let nextForm = { ...initialFormData }
+      let profileDefaultsApplied = false
+      let autofillSummary = []
+
+      if (session?.role === 'victim' && session?.subject_id) {
+        try {
+          const profile = await getProfile('victim', session.subject_id)
+          const profileData = profile?.profile_data || {}
+          const identity = profileData.identity || {}
+          const location = profileData.location_profile || {}
+          nextForm = {
+            ...nextForm,
+            zone: location.home_zone || nextForm.zone,
+            contactName: identity.full_name || profile?.full_name || nextForm.contactName,
+            phoneNumber: identity.phone || profile?.phone || nextForm.phoneNumber,
+            preferredLanguage: identity.preferred_language || profile?.preferred_language || nextForm.preferredLanguage,
+          }
+          autofillSummary = [
+            location.home_zone ? `Home zone: ${location.home_zone}` : null,
+            (identity.full_name || profile?.full_name) ? 'Contact name ready' : null,
+            (identity.phone || profile?.phone) ? 'Phone ready' : null,
+            (identity.preferred_language || profile?.preferred_language) ? `Language: ${identity.preferred_language || profile?.preferred_language}` : null,
+            profileData.household_profile?.household_size ? `Household size: ${profileData.household_profile.household_size}` : null,
+            profileData.medical_profile?.conditions?.requires_oxygen_or_respiratory_support ? 'Oxygen support flag imported' : null,
+          ].filter(Boolean)
+          profileDefaultsApplied = true
+        } catch (loadError) {
+          console.error('Unable to load victim defaults for SOS form:', loadError)
+        }
+      }
+
+      try {
+        const rawDraft = window.localStorage.getItem(draftStorageKey)
+        if (rawDraft) {
+          const parsed = JSON.parse(rawDraft)
+          if (parsed?.formData) {
+            nextForm = {
+              ...nextForm,
+              ...parsed.formData,
+            }
+            setDraftUpdatedAt(parsed.updatedAt || '')
+          }
+          setDraftLoaded(true)
+        } else if (profileDefaultsApplied) {
+          setDraftLoaded(true)
+        }
+      } catch {
+        setDraftLoaded(false)
+      }
+
+      setFormData(nextForm)
+      setAutoFilledFields(autofillSummary)
+    }
+
+    restoreDraft()
+  }, [draftStorageKey, session])
+
+  useEffect(() => {
+    if (!draftLoaded) return
+    const updatedAt = new Date().toISOString()
+    window.localStorage.setItem(
+      draftStorageKey,
+      JSON.stringify({
+        formData,
+        updatedAt,
+      })
+    )
+    setDraftUpdatedAt(updatedAt)
+  }, [draftLoaded, draftStorageKey, formData])
 
   const criticalNeeds = useMemo(() => {
     const needs = []
@@ -125,6 +216,7 @@ const SOSForm = () => {
     const gpsFallback = latitude !== undefined && longitude !== undefined ? `${latitude}, ${longitude}` : undefined
 
     return {
+      victim_id: session?.subject_id || undefined,
       disaster_type: formData.disasterType.toLowerCase(),
       location: {
         zone: zoneValue || undefined,
@@ -271,6 +363,8 @@ const SOSForm = () => {
 
   const resetForm = () => {
     setFormData(initialFormData)
+    setDraftUpdatedAt('')
+    window.localStorage.removeItem(draftStorageKey)
   }
 
   const handleSubmit = async (event) => {
@@ -305,6 +399,9 @@ const SOSForm = () => {
             <p className="mt-3 max-w-2xl text-sm text-rose-100 sm:text-base">
               Provide critical information. Help will be prioritized automatically and routed to the best available responder team.
             </p>
+            <p className="mt-3 text-xs font-semibold uppercase tracking-[0.18em] text-rose-100/80">
+              {draftUpdatedAt ? `Draft auto-saved ${new Date(draftUpdatedAt).toLocaleString()}` : 'Draft will auto-save while you fill the form'}
+            </p>
           </div>
           <div className="grid gap-3 rounded-3xl border border-white bg-white/10 p-4 text-sm">
             <div><span className="font-semibold">Current time:</span> {new Date().toLocaleString()}</div>
@@ -312,10 +409,34 @@ const SOSForm = () => {
             <button type="button" className="button-soft bg-white text-slate-900 hover:bg-rose-50" onClick={fillCurrentLocation} disabled={locating}>
               {locating ? 'Detecting Location…' : 'Use Current Location'}
             </button>
+            <button type="button" className="button-soft bg-white/15 text-white hover:bg-white/20" onClick={resetForm} disabled={loading}>
+              Clear Draft
+            </button>
             {locationStatus && <div className="text-xs text-rose-100">{locationStatus}</div>}
           </div>
         </div>
       </section>
+
+      {autoFilledFields.length > 0 && (
+        <section className="panel border border-emerald-100 bg-emerald-50">
+          <div className="flex flex-wrap items-center justify-between gap-3">
+            <div>
+              <p className="section-kicker text-emerald-600">Quick-fill from profile</p>
+              <h3 className="panel-title mt-2">Profile defaults already loaded into this SOS</h3>
+            </div>
+            <span className="rounded-full border border-emerald-200 bg-white px-3 py-1 text-xs font-bold uppercase tracking-[0.16em] text-emerald-700">
+              Auto-filled
+            </span>
+          </div>
+          <div className="mt-4 flex flex-wrap gap-2">
+            {autoFilledFields.map((field) => (
+              <span key={field} className="rounded-full border border-emerald-200 bg-white px-3 py-1.5 text-xs font-bold uppercase tracking-[0.12em] text-emerald-900">
+                {field}
+              </span>
+            ))}
+          </div>
+        </section>
+      )}
 
       <div className="grid gap-6 xl:grid-cols-[1.45fr_0.95fr]">
         <form className="space-y-6" onSubmit={handleSubmit}>
@@ -601,7 +722,7 @@ const SOSForm = () => {
               <div className="mt-4 rounded-2xl border border-emerald-200 bg-emerald-50 px-4 py-4 text-sm font-medium text-emerald-800 flex flex-col gap-3">
                 <p>{message}</p>
                 {submittedSosId && (
-                  <Link to={`/victim/${submittedSosId}`} className="button-primary text-center bg-emerald-600 hover:bg-emerald-700 text-white w-full rounded-[16px] py-3 text-sm font-bold uppercase tracking-wide">
+                  <Link to={`/victim/${submittedSosId}${(() => { try { const s = JSON.parse(window.localStorage.getItem('crisismap_session') || '{}'); return s.subject_id ? `?victimId=${s.subject_id}` : '' } catch { return '' } })()}`} className="button-primary text-center bg-emerald-600 hover:bg-emerald-700 text-white w-full rounded-[16px] py-3 text-sm font-bold uppercase tracking-wide">
                     View Live Rescue Status
                   </Link>
                 )}
@@ -613,12 +734,6 @@ const SOSForm = () => {
                 {error}
               </div>
             )}
-          </section>
-
-          <section className="panel">
-            <p className="section-kicker">Payload</p>
-            <h3 className="panel-title">Structured SOS output</h3>
-            <pre className="mt-4 overflow-x-auto rounded-2xl bg-slate-950 p-4 text-xs text-slate-100">{JSON.stringify(payload, null, 2)}</pre>
           </section>
         </aside>
       </div>

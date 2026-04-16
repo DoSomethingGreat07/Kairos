@@ -53,11 +53,15 @@ class PostgresClient:
     def _json_value(self, value: Any) -> Any:
         if isinstance(value, (datetime, date)):
             return value.isoformat()
+        if isinstance(value, uuid.UUID):
+            return str(value)
         if isinstance(value, dict):
             return {key: self._json_value(item) for key, item in value.items()}
         if isinstance(value, list):
             return [self._json_value(item) for item in value]
         if isinstance(value, tuple):
+            return [self._json_value(item) for item in value]
+        if isinstance(value, set):
             return [self._json_value(item) for item in value]
         return value
 
@@ -105,6 +109,32 @@ class RegistrationRepository:
         ORDER BY name
         """
         return self.client.fetch_all(query)
+
+    def list_zone_definitions_for_operations(self) -> List[Dict[str, Any]]:
+        rows = self.get_zones()
+        anchors = {}
+        for anchor in self.get_zone_geo_anchors():
+            zone_id = anchor.get("zone_id")
+            latitude = anchor.get("latitude")
+            longitude = anchor.get("longitude")
+            if zone_id and latitude is not None and longitude is not None and zone_id not in anchors:
+                anchors[zone_id] = {
+                    "latitude": latitude,
+                    "longitude": longitude,
+                }
+
+        return [
+            {
+                "id": row["id"],
+                "name": row["name"],
+                "risk_level": "medium",
+                "latitude": anchors.get(row["id"], {}).get("latitude"),
+                "longitude": anchors.get(row["id"], {}).get("longitude"),
+                "population": 50000,
+                "polygon_points": row.get("polygon_points", []),
+            }
+            for row in rows
+        ]
 
     def get_zone_geo_anchors(self) -> List[Dict[str, Any]]:
         query = """
@@ -154,6 +184,181 @@ class RegistrationRepository:
         ORDER BY zone_id, source
         """
         return self.client.fetch_all(query)
+
+    def list_road_edges(self) -> List[Dict[str, Any]]:
+        query = """
+        SELECT
+            road_id,
+            source_zone,
+            target_zone,
+            travel_time,
+            safe,
+            congestion,
+            has_oxygen,
+            distance_km,
+            capacity,
+            passable,
+            blocked
+        FROM road_edges
+        ORDER BY road_id
+        """
+        return [
+            {
+                "id": row["road_id"],
+                "road_id": row["road_id"],
+                "source_zone": row["source_zone"],
+                "target_zone": row["target_zone"],
+                "travel_time": row["travel_time"],
+                "safe": row["safe"],
+                "congestion": row["congestion"],
+                "has_oxygen": row["has_oxygen"],
+                "distance_km": row["distance_km"],
+                "capacity": row["capacity"],
+                "passable": row["passable"],
+                "blocked": row["blocked"],
+            }
+            for row in self.client.fetch_all(query)
+        ]
+
+    def list_hospitals(self) -> List[Dict[str, Any]]:
+        query = """
+        SELECT hospital_id, name, zone_id, available_beds, total_beds, latitude, longitude
+        FROM hospitals
+        ORDER BY hospital_id
+        """
+        return [
+            {
+                "id": str(row["hospital_id"]).lower().replace("-", "_"),
+                "hospital_id": row["hospital_id"],
+                "name": row["name"],
+                "zone_id": row["zone_id"],
+                "available_beds": row["available_beds"],
+                "total_beds": row["total_beds"],
+                "latitude": row["latitude"],
+                "longitude": row["longitude"],
+            }
+            for row in self.client.fetch_all(query)
+        ]
+
+    def list_shelters(self) -> List[Dict[str, Any]]:
+        query = """
+        SELECT shelter_id, name, zone_id, capacity, occupancy, demand, latitude, longitude
+        FROM shelters
+        ORDER BY shelter_id
+        """
+        return [
+            {
+                "id": str(row["shelter_id"]).lower().replace("-", "_"),
+                "shelter_id": row["shelter_id"],
+                "name": row["name"],
+                "zone_id": row["zone_id"],
+                "capacity": row["capacity"],
+                "occupancy": row["occupancy"],
+                "demand": row["demand"],
+                "latitude": row["latitude"],
+                "longitude": row["longitude"],
+            }
+            for row in self.client.fetch_all(query)
+        ]
+
+    def list_active_volunteers(self) -> List[Dict[str, Any]]:
+        query = """
+        SELECT
+            volunteer_id,
+            full_name,
+            skills,
+            languages,
+            available,
+            zone_id,
+            latitude,
+            longitude,
+            current_zone_id,
+            current_latitude,
+            current_longitude,
+            profile_data
+        FROM volunteers
+        ORDER BY updated_at DESC, created_at DESC
+        """
+        return [
+            {
+                "id": row["volunteer_id"],
+                "volunteer_id": row["volunteer_id"],
+                "name": row["full_name"],
+                "full_name": row["full_name"],
+                "skills": row.get("skills") or [],
+                "languages": row.get("languages") or [],
+                "available": row.get("available", False),
+                "zone_id": row.get("zone_id"),
+                "latitude": row.get("latitude"),
+                "longitude": row.get("longitude"),
+                "current_zone_id": row.get("current_zone_id"),
+                "current_latitude": row.get("current_latitude") if row.get("current_latitude") is not None else row.get("latitude"),
+                "current_longitude": row.get("current_longitude") if row.get("current_longitude") is not None else row.get("longitude"),
+                "profile_data": row.get("profile_data") or {},
+            }
+            for row in self.client.fetch_all(query)
+        ]
+
+    def list_tasks(self) -> List[Dict[str, Any]]:
+        query = """
+        SELECT task_id, zone_id, required_skill, required_language, latitude, longitude, profile_data
+        FROM tasks
+        ORDER BY task_id
+        """
+        return [
+            {
+                "id": row["task_id"],
+                "task_id": row["task_id"],
+                "zone_id": row.get("zone_id"),
+                "required_skill": row["required_skill"],
+                "required_language": row.get("required_language"),
+                "latitude": row["latitude"],
+                "longitude": row["longitude"],
+                "profile_data": row.get("profile_data") or {},
+            }
+            for row in self.client.fetch_all(query)
+        ]
+
+    def list_depots(self) -> List[Dict[str, Any]]:
+        query = """
+        SELECT depot_id, name, zone_id, supply, latitude, longitude, assigned_shelters, profile_data
+        FROM depots
+        ORDER BY depot_id
+        """
+        return [
+            {
+                "id": str(row["depot_id"]).lower().replace("-", "_"),
+                "depot_id": row["depot_id"],
+                "name": row["name"],
+                "zone_id": row["zone_id"],
+                "supply": row["supply"],
+                "latitude": row["latitude"],
+                "longitude": row["longitude"],
+                "assigned_shelters": row.get("assigned_shelters") or [],
+                "profile_data": row.get("profile_data") or {},
+            }
+            for row in self.client.fetch_all(query)
+        ]
+
+    def list_zone_history_priors(self) -> List[Dict[str, Any]]:
+        query = """
+        SELECT zone_id, disaster_type, prior_critical, prior_high, prior_medium, prior_low, profile_data
+        FROM zone_history_priors
+        ORDER BY zone_id, disaster_type
+        """
+        return [
+            {
+                "id": f"prior_{row['zone_id']}_{row['disaster_type']}",
+                "zone_id": row["zone_id"],
+                "disaster_type": row["disaster_type"],
+                "prior_critical": row["prior_critical"],
+                "prior_high": row["prior_high"],
+                "prior_medium": row["prior_medium"],
+                "prior_low": row["prior_low"],
+                "profile_data": row.get("profile_data") or {},
+            }
+            for row in self.client.fetch_all(query)
+        ]
 
     def save_draft(self, role: str, current_step: int, draft_data: Dict[str, Any], draft_id: Optional[str] = None) -> Dict[str, Any]:
         if draft_id:
@@ -311,6 +516,66 @@ class RegistrationRepository:
         LIMIT 1
         """
         return self.client.fetch_one(query, {"phone": phone})
+
+    def list_active_responders_for_assignment(self) -> List[Dict[str, Any]]:
+        query = """
+        SELECT
+            id,
+            full_name,
+            responder_type,
+            primary_station_zone_id,
+            capabilities,
+            active_capabilities,
+            personal_equipment,
+            coverage_zone_ids,
+            max_travel_radius_km,
+            availability_status,
+            profile_data
+        FROM responders
+        WHERE status = 'active'
+        ORDER BY updated_at DESC, created_at DESC
+        """
+        rows = self.client.fetch_all(query)
+        zone_anchors = {}
+        for anchor in self.get_zone_geo_anchors():
+            zone_id = anchor.get("zone_id")
+            latitude = anchor.get("latitude")
+            longitude = anchor.get("longitude")
+            if zone_id and latitude is not None and longitude is not None and zone_id not in zone_anchors:
+                zone_anchors[zone_id] = {
+                    "latitude": latitude,
+                    "longitude": longitude,
+                }
+        normalized: List[Dict[str, Any]] = []
+        for row in rows:
+            profile_data = row.get("profile_data") or {}
+            availability = str(row.get("availability_status") or "").lower()
+            equipment = row.get("personal_equipment") or []
+            capabilities = row.get("capabilities") or []
+            active_capabilities = row.get("active_capabilities") or []
+            zone_anchor = zone_anchors.get(row.get("primary_station_zone_id")) or {}
+            latitude = profile_data.get("latitude")
+            longitude = profile_data.get("longitude")
+            normalized.append(
+                {
+                    "id": row["id"],
+                    "name": row.get("full_name"),
+                    "type": row.get("responder_type"),
+                    "zone_id": row.get("primary_station_zone_id"),
+                    "current_zone": profile_data.get("current_zone") or row.get("primary_station_zone_id"),
+                    "capabilities": capabilities,
+                    "skills": active_capabilities or profile_data.get("skills") or capabilities,
+                    "has_equipment": bool(profile_data.get("has_equipment") or equipment),
+                    "available": profile_data.get("available") if profile_data.get("available") is not None else availability in {"available_now", "available", "on_call"},
+                    "latitude": latitude if latitude is not None else zone_anchor.get("latitude"),
+                    "longitude": longitude if longitude is not None else zone_anchor.get("longitude"),
+                    "coverage_zones": row.get("coverage_zone_ids") or [],
+                    "max_travel_radius_km": row.get("max_travel_radius_km") or profile_data.get("max_travel_radius_km"),
+                    "outside_zone_allowed": profile_data.get("outside_zone_allowed"),
+                    "source": "postgres",
+                }
+            )
+        return normalized
 
     def save_organization_profile(self, payload: Dict[str, Any]) -> Dict[str, Any]:
         draft = self.save_draft(
@@ -487,6 +752,117 @@ class RegistrationRepository:
         """
         return self.client.fetch_all(query, {"organization_id": organization_id})
 
+    def get_organization_operational_snapshot(self, organization_id: str) -> Dict[str, Any]:
+        organization = self.client.fetch_one(
+            """
+            SELECT id, name, headquarters_zone_id, coverage_zone_ids, organization_type
+            FROM organizations
+            WHERE id = %(organization_id)s::uuid
+            """,
+            {"organization_id": organization_id},
+        )
+        if not organization:
+            raise RuntimeError("Organization not found.")
+
+        coverage_zone_ids = organization.get("coverage_zone_ids") or []
+        if isinstance(coverage_zone_ids, str):
+            try:
+                coverage_zone_ids = json.loads(coverage_zone_ids)
+            except Exception:
+                coverage_zone_ids = []
+        if not coverage_zone_ids and organization.get("headquarters_zone_id"):
+            coverage_zone_ids = [organization["headquarters_zone_id"]]
+
+        responders = self.client.fetch_one(
+            """
+            SELECT
+                COUNT(*) FILTER (WHERE status = 'active') AS total_responders,
+                COUNT(*) FILTER (WHERE status = 'active' AND availability_status = 'available') AS available_responders
+            FROM responders
+            WHERE organization_id = %(organization_id)s::uuid
+            """,
+            {"organization_id": organization_id},
+        ) or {}
+
+        responder_rows = self.client.fetch_all(
+            """
+            SELECT
+                id,
+                responder_id,
+                employee_id,
+                full_name,
+                role_title,
+                responder_type,
+                availability_status,
+                status
+            FROM responders
+            WHERE organization_id = %(organization_id)s::uuid
+            ORDER BY full_name
+            """,
+            {"organization_id": organization_id},
+        )
+
+        shelters = self.client.fetch_one(
+            """
+            SELECT
+                COALESCE(SUM(total_capacity) FILTER (WHERE currently_operational = TRUE AND is_active_resource = TRUE), 0) AS shelter_total_capacity,
+                COALESCE(SUM(total_capacity) FILTER (
+                    WHERE currently_operational = TRUE
+                      AND is_active_resource = TRUE
+                      AND has_medical_bay = TRUE
+                ), 0) AS medical_bay_capacity
+            FROM organization_shelters
+            WHERE organization_id = %(organization_id)s::uuid
+            """,
+            {"organization_id": organization_id},
+        ) or {}
+
+        zone_metrics = {
+            "available_beds": 0,
+            "total_beds": 0,
+            "available_shelter_capacity": 0,
+            "shelter_capacity": 0,
+            "coverage_zone_ids": coverage_zone_ids,
+        }
+        if coverage_zone_ids:
+            zone_metrics = self.client.fetch_one(
+                """
+                SELECT
+                    COALESCE(SUM(available_beds), 0) AS available_beds,
+                    COALESCE(SUM(total_beds), 0) AS total_beds,
+                    COALESCE(SUM(GREATEST(capacity - occupancy, 0)), 0) AS available_shelter_capacity,
+                    COALESCE(SUM(capacity), 0) AS shelter_capacity
+                FROM hospitals h
+                FULL OUTER JOIN shelters s
+                    ON FALSE
+                WHERE
+                    (h.zone_id = ANY(%(coverage_zone_ids)s::text[]))
+                    OR (s.zone_id = ANY(%(coverage_zone_ids)s::text[]))
+                """,
+                {"coverage_zone_ids": coverage_zone_ids},
+            ) or zone_metrics
+
+        total_beds = zone_metrics.get("total_beds") or 0
+        available_beds = zone_metrics.get("available_beds") or 0
+        shelter_capacity = zone_metrics.get("shelter_capacity") or 0
+        available_shelter_capacity = zone_metrics.get("available_shelter_capacity") or 0
+        hospital_capacity = 0 if total_beds <= 0 else round(((total_beds - available_beds) / total_beds) * 100)
+        shelter_occupancy = 0 if shelter_capacity <= 0 else round(((shelter_capacity - available_shelter_capacity) / shelter_capacity) * 100)
+
+        return {
+            "organization": organization,
+            "coverage_zone_ids": coverage_zone_ids,
+            "availableResponders": responders.get("available_responders") or 0,
+            "totalResponders": responders.get("total_responders") or 0,
+            "availableBeds": available_beds,
+            "availableShelterCapacity": available_shelter_capacity,
+            "hospitalCapacity": hospital_capacity,
+            "shelterOccupancy": shelter_occupancy,
+            "medicalBayCapacity": shelters.get("medical_bay_capacity") or 0,
+            "ownedShelterCapacity": shelters.get("shelter_total_capacity") or 0,
+            "responders": responder_rows,
+        }
+
     def ensure_responder_organization(self, payload: Dict[str, Any]) -> Dict[str, Any]:
         organization = self.validate_organization_code(payload["organization_code"])
         if organization:
@@ -556,7 +932,7 @@ class RegistrationRepository:
 
         responder_query = """
         INSERT INTO responders (
-            draft_id, organization_id, employee_id, full_name, role_title, phone, profile_photo_url,
+            draft_id, organization_id, employee_id, responder_id, full_name, role_title, phone, profile_photo_url,
             years_of_experience, responder_type, capabilities, active_capabilities, personal_equipment,
             assigned_vehicle_id, primary_station_zone_id, coverage_zone_ids, max_travel_radius_km,
             flooded_conditions, fire_conditions, height_conditions, confined_space_conditions,
@@ -564,7 +940,7 @@ class RegistrationRepository:
             profile_data, status
         )
         VALUES (
-            %(draft_id)s, %(organization_id)s, %(employee_id)s, %(full_name)s, %(role_title)s, %(phone)s, %(profile_photo_url)s,
+            %(draft_id)s, %(organization_id)s, %(employee_id)s, %(responder_id)s, %(full_name)s, %(role_title)s, %(phone)s, %(profile_photo_url)s,
             %(years_of_experience)s, %(responder_type)s, %(capabilities)s::jsonb, %(active_capabilities)s::jsonb, %(personal_equipment)s::jsonb,
             %(assigned_vehicle_id)s, %(primary_station_zone_id)s, %(coverage_zone_ids)s::jsonb, %(max_travel_radius_km)s,
             %(flooded_conditions)s, %(fire_conditions)s, %(height_conditions)s, %(confined_space_conditions)s,
@@ -572,6 +948,7 @@ class RegistrationRepository:
             %(profile_data)s::jsonb, 'active'
         )
         ON CONFLICT (organization_id, employee_id) DO UPDATE SET
+            responder_id = EXCLUDED.responder_id,
             full_name = EXCLUDED.full_name,
             role_title = EXCLUDED.role_title,
             phone = EXCLUDED.phone,
@@ -599,10 +976,12 @@ class RegistrationRepository:
         RETURNING id, organization_id, employee_id, full_name, updated_at
         """
         active_capabilities = payload.get("active_capabilities") or capabilities["capabilities"]
+        responder_id = f"responder-{identity['employee_id']}-{uuid.uuid4().hex[:8]}"
         responder = self.client.fetch_one(responder_query, {
             "draft_id": draft["id"],
             "organization_id": organization["id"],
             "employee_id": identity["employee_id"],
+            "responder_id": responder_id,
             "full_name": identity["full_name"],
             "role_title": identity["role_title"],
             "phone": identity["phone"],
@@ -833,15 +1212,54 @@ class RegistrationRepository:
             """
         elif role == "organization":
             query = """
-            SELECT id, draft_id, name, organization_code, verification_status, profile_data, updated_at
-            FROM organizations
-            WHERE id = %(subject_id)s
+            SELECT
+                o.id,
+                o.draft_id,
+                o.name,
+                o.organization_code,
+                o.verification_status,
+                o.profile_data,
+                o.updated_at,
+                COALESCE(
+                    jsonb_agg(
+                        jsonb_build_object(
+                            'id', r.id,
+                            'responder_id', r.responder_id,
+                            'employee_id', r.employee_id,
+                            'full_name', r.full_name,
+                            'role_title', r.role_title,
+                            'responder_type', r.responder_type,
+                            'availability_status', r.availability_status,
+                            'status', r.status
+                        )
+                        ORDER BY r.full_name
+                    ) FILTER (WHERE r.id IS NOT NULL),
+                    '[]'::jsonb
+                ) AS responders
+            FROM organizations o
+            LEFT JOIN responders r
+                ON r.organization_id = o.id
+            WHERE o.id = %(subject_id)s
+            GROUP BY o.id, o.draft_id, o.name, o.organization_code, o.verification_status, o.profile_data, o.updated_at
             """
         elif role == "responder":
             query = """
-            SELECT id, draft_id, full_name, employee_id, profile_data, status, updated_at
-            FROM responders
-            WHERE id = %(subject_id)s
+            SELECT
+                r.id,
+                r.draft_id,
+                r.full_name,
+                r.employee_id,
+                r.organization_id,
+                o.name AS organization_name,
+                o.organization_code,
+                r.availability_status,
+                r.profile_data,
+                r.status,
+                r.updated_at
+            FROM responders r
+            LEFT JOIN organizations o
+                ON o.id = r.organization_id
+            WHERE r.id = %(subject_id)s
             """
         else:
             return None
@@ -872,3 +1290,26 @@ class RegistrationRepository:
         else:
             return None
         return self.client.fetch_one(query, {"subject_id": subject_id, "profile_data": self._json(profile_data)})
+
+    def update_responder_availability(self, subject_id: str, availability_status: str) -> Optional[Dict[str, Any]]:
+        query = """
+        UPDATE responders
+        SET
+            availability_status = %(availability_status)s,
+            profile_data = jsonb_set(
+                COALESCE(profile_data, '{}'::jsonb),
+                '{availability, status}',
+                to_jsonb(%(availability_status)s::text),
+                TRUE
+            ),
+            updated_at = NOW()
+        WHERE id = %(subject_id)s::uuid
+        RETURNING id, availability_status, updated_at
+        """
+        return self.client.fetch_one(
+            query,
+            {
+                "subject_id": subject_id,
+                "availability_status": availability_status,
+            },
+        )

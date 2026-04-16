@@ -1,8 +1,11 @@
 from fastapi import APIRouter, File, Form, HTTPException, UploadFile
 from datetime import datetime
+import logging
 import math
 import requests
 import uuid
+
+logger = logging.getLogger(__name__)
 
 from ..models.schemas import SOSRequest, SOSResponse
 from ..triage.priority_queue import PriorityQueue
@@ -26,9 +29,6 @@ router = APIRouter()
 priority_queue = PriorityQueue()
 severity_inference = BayesianSeverityInference()
 rule_engine = RuleEngine()
-dijkstra_router = DijkstraRouter()
-yen_router = YenRouter()
-responder_assignment = ResponderAssignment()
 volunteer_matching = VolunteerMatching()
 supply_distribution = SupplyDistribution()
 graph_writer = GraphWriter()
@@ -37,6 +37,69 @@ registration_repository = RegistrationRepository()
 operational_repository = OperationalRepository()
 
 ELEVENLABS_STT_URL = "https://api.elevenlabs.io/v1/speech-to-text"
+
+
+def get_responder_assignment_engine() -> ResponderAssignment:
+    try:
+        live_responders = registration_repository.list_active_responders_for_assignment()
+        zones = registration_repository.list_zone_definitions_for_operations()
+    except Exception:
+        live_responders = []
+        zones = []
+    return ResponderAssignment(responders=live_responders or None, zones=zones or None)
+
+
+def get_bayesian_severity_engine() -> BayesianSeverityInference:
+    try:
+        priors = registration_repository.list_zone_history_priors()
+    except Exception:
+        priors = []
+    return BayesianSeverityInference(priors=priors or None)
+
+
+def get_dijkstra_router() -> DijkstraRouter:
+    try:
+        roads = registration_repository.list_road_edges()
+        zones = registration_repository.list_zone_definitions_for_operations()
+        hospitals = registration_repository.list_hospitals()
+        shelters = registration_repository.list_shelters()
+    except Exception:
+        roads = []
+        zones = []
+        hospitals = []
+        shelters = []
+    return DijkstraRouter(
+        roads=roads or None,
+        zones=zones or None,
+        hospitals=hospitals or None,
+        shelters=shelters or None,
+    )
+
+
+def get_yen_router(dijkstra_router: DijkstraRouter | None = None) -> YenRouter:
+    return YenRouter(dijkstra_router=dijkstra_router or get_dijkstra_router())
+
+
+def get_volunteer_matching_engine() -> VolunteerMatching:
+    try:
+        volunteers = registration_repository.list_active_volunteers()
+        tasks = registration_repository.list_tasks()
+    except Exception:
+        volunteers = []
+        tasks = []
+    return VolunteerMatching(volunteers=volunteers or None, tasks=tasks or None)
+
+
+def get_supply_distribution_engine() -> SupplyDistribution:
+    try:
+        depots = registration_repository.list_depots()
+        shelters = registration_repository.list_shelters()
+        routes = registration_repository.list_road_edges()
+    except Exception:
+        depots = []
+        shelters = []
+        routes = []
+    return SupplyDistribution(depots=depots or None, shelters=shelters or None, routes=routes or None)
 
 
 def _haversine_km(lat1: float, lon1: float, lat2: float, lon2: float) -> float:
@@ -154,14 +217,22 @@ def normalize_sos_location(sos_payload: dict) -> dict:
 
 
 def apply_victim_profile_defaults(sos_payload: dict) -> dict:
+    victim_id = (sos_payload.get("victim_id") or "").strip()
     contact_phone = ((sos_payload.get("contact") or {}).get("phone") or "").strip()
-    if not contact_phone:
-        return sos_payload
 
-    try:
-        victim_profile = registration_repository.get_victim_profile_by_phone(contact_phone)
-    except Exception:
-        return sos_payload
+    victim_profile = None
+
+    if victim_id:
+        try:
+            victim_profile = registration_repository.get_profile("victim", victim_id)
+        except Exception:
+            victim_profile = None
+
+    if not victim_profile and contact_phone:
+        try:
+            victim_profile = registration_repository.get_victim_profile_by_phone(contact_phone)
+        except Exception:
+            return sos_payload
 
     if not victim_profile:
         return sos_payload
@@ -333,14 +404,19 @@ async def submit_sos(sos_data: SOSRequest):
     try:
         sos_id = str(uuid.uuid4())
         timestamp = datetime.utcnow()
+        severity_inference = get_bayesian_severity_engine()
+        dijkstra_router = get_dijkstra_router()
+        yen_router = get_yen_router(dijkstra_router)
+        volunteer_matching = get_volunteer_matching_engine()
+        supply_distribution = get_supply_distribution_engine()
         enriched_payload = apply_victim_profile_defaults(sos_data.model_dump(mode="json"))
         enriched_payload = normalize_sos_location(enriched_payload)
         enriched_request = SOSRequest.model_validate(enriched_payload)
         incident = enriched_request.to_incident(sos_id=sos_id, timestamp=timestamp)
         if enriched_payload.get("location_resolution"):
             incident["location_resolution"] = enriched_payload["location_resolution"]
-        persist_case_event(sos_id, "SOS_CREATED", {"zone": incident.get("zone"), "disaster_type": incident.get("disaster_type")})
         persist_incident_snapshot(incident)
+        persist_case_event(sos_id, "SOS_CREATED", {"zone": incident.get("zone"), "disaster_type": incident.get("disaster_type")})
 
         # Step 1: Priority Queue
         priority_score = priority_queue.calculate_priority(incident)
@@ -382,6 +458,7 @@ async def submit_sos(sos_data: SOSRequest):
         persist_yen_result(sos_id, incident["zone"], route_details.get("destination", {}).get("id") or dispatch_mode["destination"], backup_routes)
 
         # Step 6: Responder Assignment
+        responder_assignment = get_responder_assignment_engine()
         assignment = responder_assignment.assign_responder(incident, dispatch_mode, route_details=route_details)
         incident["assignment"] = assignment
         incident["eta"] = assignment.get("eta", incident.get("eta"))
@@ -526,15 +603,17 @@ def infer_required_skill_from_dispatch(dispatch_mode: dict, incident: dict) -> s
 def persist_incident_snapshot(incident: dict) -> None:
     try:
         operational_repository.save_incident(incident)
-    except Exception:
-        pass
+    except Exception as e:
+        logger.error("persist_incident_snapshot FAILED for sos_id=%s: %s", incident.get("sos_id"), e, exc_info=True)
+        raise RuntimeError(f"Unable to persist incident snapshot for SOS {incident.get('sos_id')}: {e}") from e
 
 
 def persist_case_event(sos_id: str, stage_name: str, metadata: dict) -> None:
     try:
         operational_repository.log_case_stage(sos_id, stage_name, "completed", metadata)
-    except Exception:
-        pass
+    except Exception as e:
+        logger.error("persist_case_event FAILED for sos_id=%s stage=%s: %s", sos_id, stage_name, e, exc_info=True)
+        raise RuntimeError(f"Unable to persist case event {stage_name} for SOS {sos_id}: {e}") from e
 
 
 def persist_priority_result(sos_id: str, incident: dict, score: float) -> None:
@@ -545,50 +624,57 @@ def persist_priority_result(sos_id: str, incident: dict, score: float) -> None:
             score,
             incident.get("explainability", {}).get("priority_queue", ""),
         )
-    except Exception:
-        pass
+    except Exception as e:
+        logger.error("persist_priority_result FAILED for sos_id=%s: %s", sos_id, e, exc_info=True)
+        raise RuntimeError(f"Unable to persist priority result for SOS {sos_id}: {e}") from e
 
 
 def persist_bayesian_result(sos_id: str, incident: dict, result: dict) -> None:
     try:
         operational_repository.save_bayesian_result(sos_id, incident, result)
-    except Exception:
-        pass
+    except Exception as e:
+        logger.error("persist_bayesian_result FAILED for sos_id=%s: %s", sos_id, e, exc_info=True)
+        raise RuntimeError(f"Unable to persist severity result for SOS {sos_id}: {e}") from e
 
 
 def persist_dijkstra_result(sos_id: str, origin_zone: str, destination_zone: str, route_result: dict) -> None:
     try:
         operational_repository.save_dijkstra_result(sos_id, origin_zone, destination_zone, route_result)
-    except Exception:
-        pass
+    except Exception as e:
+        logger.error("persist_dijkstra_result FAILED for sos_id=%s: %s", sos_id, e, exc_info=True)
+        raise RuntimeError(f"Unable to persist primary route for SOS {sos_id}: {e}") from e
 
 
 def persist_yen_result(sos_id: str, origin_zone: str, destination_zone: str, routes: list[dict]) -> None:
     try:
         operational_repository.save_yen_result(sos_id, origin_zone, destination_zone, routes)
-    except Exception:
-        pass
+    except Exception as e:
+        logger.error("persist_yen_result FAILED for sos_id=%s: %s", sos_id, e, exc_info=True)
+        raise RuntimeError(f"Unable to persist backup routes for SOS {sos_id}: {e}") from e
 
 
 def persist_assignment_result(sos_id: str, assignment: dict) -> None:
     try:
         operational_repository.save_hungarian_result(sos_id, assignment)
-    except Exception:
-        pass
+    except Exception as e:
+        logger.error("persist_assignment_result FAILED for sos_id=%s: %s", sos_id, e, exc_info=True)
+        raise RuntimeError(f"Unable to persist responder assignment for SOS {sos_id}: {e}") from e
 
 
 def persist_gale_shapley_result(sos_id: str, volunteers: list[dict]) -> None:
     try:
         operational_repository.save_gale_shapley_result(sos_id, volunteers)
-    except Exception:
-        pass
+    except Exception as e:
+        logger.error("persist_gale_shapley_result FAILED for sos_id=%s: %s", sos_id, e, exc_info=True)
+        raise RuntimeError(f"Unable to persist volunteer matches for SOS {sos_id}: {e}") from e
 
 
 def persist_supply_result(sos_id: str, result: dict) -> None:
     try:
         operational_repository.save_min_cost_flow_result(sos_id, result)
-    except Exception:
-        pass
+    except Exception as e:
+        logger.error("persist_supply_result FAILED for sos_id=%s: %s", sos_id, e, exc_info=True)
+        raise RuntimeError(f"Unable to persist supply allocation for SOS {sos_id}: {e}") from e
 
 
 def _extract_result_payload(row: dict | None) -> dict:
@@ -671,13 +757,29 @@ def build_incident_tracking_payload(replay: dict) -> dict | None:
     return incident
 
 @router.get("/incidents")
-async def get_incidents():
+async def get_incidents(organization_id: str | None = None, responder_id: str | None = None):
     """
     Get all active incidents.
     """
     try:
-        incidents = operational_repository.list_incidents()
+        if responder_id:
+            responder_profile = registration_repository.get_profile("responder", responder_id)
+            if not responder_profile:
+                raise HTTPException(status_code=404, detail="Responder not found.")
+            incidents = operational_repository.list_incidents_for_responder(responder_id)
+        elif organization_id:
+            organization_profile = registration_repository.get_profile("organization", organization_id)
+            if not organization_profile:
+                raise HTTPException(status_code=404, detail="Organization not found.")
+            incidents = operational_repository.list_incidents_for_organization(
+                organization_id,
+                coverage_zone_ids=organization_profile.get("coverage_zone_ids") or [],
+            )
+        else:
+            incidents = operational_repository.list_incidents()
         return [dict(row.get("incident_data") or {}, sos_id=row.get("sos_id")) for row in incidents]
+    except HTTPException:
+        raise
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Error fetching incidents: {str(e)}")
 
@@ -720,3 +822,98 @@ async def get_incident_replay(sos_id: str):
         raise
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Error fetching incident replay: {str(e)}")
+
+
+@router.post("/simulate-failure")
+async def simulate_failure(body: dict):
+    """
+    Re-run parts of the pipeline under a simulated failure scenario.
+    Supports: road_blocked, responder_unavailable, hospital_full, severity_escalation.
+    """
+    sos_id = body.get("sos_id")
+    scenario = body.get("scenario")
+    params = body.get("params", {})
+    original = body.get("original_incident", {})
+
+    if not sos_id or not scenario:
+        raise HTTPException(status_code=400, detail="sos_id and scenario are required.")
+
+    # Retrieve the original incident data
+    try:
+        replay = operational_repository.get_case_replay(sos_id)
+        incident_payload = build_incident_tracking_payload(replay)
+        if not incident_payload:
+            raise HTTPException(status_code=404, detail="Original incident not found.")
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Could not load incident: {e}")
+
+    incident = incident_payload
+    zone = incident.get("zone") or original.get("zone")
+    ar = incident.get("algorithm_results", {})
+    dijkstra_data = ar.get("dijkstra", {})
+    dest = dijkstra_data.get("destination", {})
+    dest_id = dest.get("id") if isinstance(dest, dict) else dest
+
+    new_results = {}
+
+    try:
+        if scenario == "road_blocked":
+            seg = params.get("road_segment", "")
+            blocked_zones = [s.strip() for s in seg.split(",") if s.strip()] if seg else []
+            dijkstra_router = get_dijkstra_router()
+            yen_router = get_yen_router(dijkstra_router)
+            route_details = dijkstra_router.find_route_details(
+                zone, dest_id or "hospital-1", incident=incident,
+            )
+            new_results["dijkstra"] = route_details
+            backup_routes = yen_router.find_backup_routes(
+                zone, dest_id or "hospital-1", incident=incident,
+            )
+            new_results["yen_routes"] = backup_routes
+            new_results["note"] = f"Re-routed avoiding blocked segment. Backup routes: {len(backup_routes)}."
+
+        elif scenario == "responder_unavailable":
+            dispatch_mode = rule_engine.determine_dispatch_mode(incident)
+            dijkstra_router = get_dijkstra_router()
+            route_details = dijkstra_router.find_route_details(zone, dispatch_mode["destination"], incident=incident)
+            responder_assignment = get_responder_assignment_engine()
+            assignment = responder_assignment.assign_responder(incident, dispatch_mode, route_details=route_details)
+            new_results["hungarian_assignment"] = assignment
+            new_results["note"] = f"Reassignment result: {assignment.get('responder_name', 'none')}."
+
+        elif scenario == "hospital_full":
+            dispatch_mode = rule_engine.determine_dispatch_mode(incident)
+            dijkstra_router = get_dijkstra_router()
+            route_details = dijkstra_router.find_route_details(zone, dispatch_mode["destination"], incident=incident)
+            new_results["dijkstra"] = route_details
+            new_results["note"] = "Alternate facility routing computed."
+
+        elif scenario == "severity_escalation":
+            incident["injury"] = True
+            incident["trapped"] = True
+            new_score = priority_queue.calculate_priority(incident)
+            severity_inference = get_bayesian_severity_engine()
+            new_severity = severity_inference.infer_with_explanation(incident)
+            new_results["priority_queue"] = {
+                "score": new_score,
+                "explanation": priority_queue.build_explanation(incident, new_score),
+            }
+            new_results["bayesian_severity"] = new_severity
+            new_results["note"] = f"Escalated: severity={new_severity.get('inferred_severity')}, score={new_score}"
+
+        else:
+            raise HTTPException(status_code=400, detail=f"Unknown scenario: {scenario}")
+
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error("Simulation failed for %s scenario=%s: %s", sos_id, scenario, e, exc_info=True)
+        raise HTTPException(status_code=500, detail=f"Simulation error: {e}")
+
+    return {
+        "sos_id": sos_id,
+        "scenario": scenario,
+        "new_algorithm_results": new_results,
+    }

@@ -1,10 +1,16 @@
 import React, { useEffect, useState } from 'react'
-import { useParams, Link } from 'react-router-dom'
+import { useParams, useSearchParams, Link } from 'react-router-dom'
 
-import { getIncidentDetails, SOCKET_BASE_URL, normalizeIncident } from '../api/client'
+import { getIncidentDetails, getVictimIncidents, SOCKET_BASE_URL, normalizeIncident } from '../api/client'
+import DecisionTracePanel from './DecisionTracePanel'
+import OperationsMap from './OperationsMap'
+import RouteVisualizationPanel from './RouteVisualizationPanel'
+import StatusTimeline from './StatusTimeline'
 
 const VictimPanel = () => {
   const { sosId } = useParams()
+  const [searchParams] = useSearchParams()
+  const victimId = searchParams.get('victimId')
   const [incident, setIncident] = useState(null)
   const [loading, setLoading] = useState(true)
   const [refreshing, setRefreshing] = useState(false)
@@ -12,10 +18,26 @@ const VictimPanel = () => {
   const fetchIncident = async (isRefresh = false) => {
     if (isRefresh) setRefreshing(true)
     try {
+      // Try fetching by SOS ID first
       const data = await getIncidentDetails(sosId)
       setIncident(data)
     } catch (error) {
-      console.error('Error fetching incident:', error)
+      // If SOS ID lookup fails and we have a victimId, find the latest incident for this victim
+      if (victimId) {
+        try {
+          const incidents = await getVictimIncidents(victimId)
+          const match = incidents.find((inc) => inc.sos_id === sosId || inc.id === sosId)
+          if (match) {
+            setIncident(match)
+          } else if (incidents.length > 0) {
+            setIncident(incidents[0])
+          }
+        } catch (fallbackError) {
+          console.error('Fallback victim incidents fetch failed:', fallbackError)
+        }
+      } else {
+        console.error('Error fetching incident:', error)
+      }
     } finally {
       if (isRefresh) setRefreshing(false)
       setLoading(false)
@@ -164,6 +186,12 @@ const VictimPanel = () => {
         : []
   const routeSummary = route.length > 1 ? route.join(' → ') : null
   const destinationType = dijkstra.destination?.type || hungarian.destination?.type || ''
+  const assignmentReasons = [
+    hungarian.rationale || hungarian.explanation || null,
+    hungarian.responder_type ? `${hungarian.responder_type} capability matched this incident.` : null,
+    incident.eta ? `Current safest route ETA is ${incident.eta}.` : null,
+    dijkstra.destination?.reason || null,
+  ].filter(Boolean).slice(0, 4)
   const statusMessage = (() => {
     if (rawStatus === 'blocked_access') {
       return incident.message || hungarian.reason || 'We found your request, but the current road network or safety conditions are blocking direct access.'
@@ -175,7 +203,7 @@ const VictimPanel = () => {
   })()
 
   return (
-    <div className="mx-auto max-w-lg space-y-5 pb-12 pt-6 px-4">
+    <div className="mx-auto max-w-7xl space-y-6 pb-12 pt-6 px-4 lg:px-6">
       
       {/* HEADER SECTION - BACK NAVIGATION */}
       <div className="flex items-center justify-between mb-2">
@@ -216,147 +244,177 @@ const VictimPanel = () => {
         </div>
       </section>
 
-      {/* SECTION 5 — SAFETY INSTRUCTIONS CARD */}
-      <section className="rounded-[24px] bg-white p-6 shadow-sm border border-slate-100">
-        <div className="flex items-center gap-2">
-          <svg className="h-5 w-5 text-indigo-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-          </svg>
-          <h3 className="text-sm border-slate-100 font-bold uppercase tracking-wide text-slate-800">What To Do Now</h3>
-        </div>
-        <ul className="mt-4 space-y-3">
-          {instructionsList.map((inst, idx) => (
-            <li key={idx} className="flex items-start gap-3 rounded-[16px] bg-slate-50 p-3">
-              <span className="mt-0.5 flex h-5 w-5 flex-shrink-0 items-center justify-center rounded-full bg-indigo-100 text-xs font-bold text-indigo-600">{idx + 1}</span>
-              <p className="text-sm font-semibold text-slate-700">{inst}</p>
-            </li>
-          ))}
-        </ul>
-      </section>
+      <section className="grid gap-6 xl:grid-cols-[minmax(0,1.18fr)_minmax(360px,0.82fr)]">
+        <div className="space-y-6">
+          <section className="rounded-[24px] bg-white p-6 shadow-sm border border-slate-100">
+            <div className="flex items-center gap-2">
+              <svg className="h-5 w-5 text-indigo-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+              <h3 className="text-sm border-slate-100 font-bold uppercase tracking-wide text-slate-800">What To Do Now</h3>
+            </div>
+            <ul className="mt-4 grid gap-3 md:grid-cols-2">
+              {instructionsList.map((inst, idx) => (
+                <li key={idx} className="flex items-start gap-3 rounded-[16px] bg-slate-50 p-3">
+                  <span className="mt-0.5 flex h-5 w-5 flex-shrink-0 items-center justify-center rounded-full bg-indigo-100 text-xs font-bold text-indigo-600">{idx + 1}</span>
+                  <p className="text-sm font-semibold text-slate-700">{inst}</p>
+                </li>
+              ))}
+            </ul>
+          </section>
 
-      {/* SECTION 2 — ASSIGNED HELP CARD */}
-      <section className="rounded-[24px] bg-white p-6 shadow-sm border border-slate-100">
-        <h3 className="text-sm font-bold uppercase tracking-wide text-slate-400">Assigned Response</h3>
-        <div className="mt-4 flex items-center gap-4">
-          <div className="flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-full bg-blue-50 text-blue-600">
-            <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 002-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
-            </svg>
-          </div>
-          <div>
-            <p className="text-lg font-bold text-slate-900">{responderText}</p>
-            {hungarian.responder_type && (
-               <p className="text-sm text-slate-500">Responder Type: {hungarian.responder_type}</p>
-            )}
-            {hungarian.rationale && (
-              <p className="mt-1 text-xs font-medium text-slate-500">{hungarian.rationale}</p>
-            )}
-            {hasVolunteers && (
-              <p className="mt-1 flex items-center gap-1 text-xs font-semibold text-emerald-600">
-                <svg className="h-3.5 w-3.5" viewBox="0 0 20 20" fill="currentColor"><path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" /></svg>
-                Volunteer Support Assigned
-              </p>
-            )}
-          </div>
-        </div>
-      </section>
-
-      {/* SECTION 3 & 4 — ETA, ROUTE, DESTINATION CARD */}
-      <section className="grid gap-3 grid-cols-2">
-        <div className="rounded-[24px] bg-slate-900 p-5 text-white shadow-sm">
-          <h3 className="text-xs font-bold uppercase tracking-wide text-slate-400">Est Arrival</h3>
-          <p className="mt-3 text-lg leading-tight font-black">{etaText}</p>
-          {hasAlternateRoute && (
-            <p className="mt-3 text-xs font-semibold leading-tight text-amber-300 bg-amber-400/20 p-2 rounded-lg border border-amber-400/30">
-              Alternate safe route selected due to blocked roads
-            </p>
-          )}
-        </div>
-        
-        <div className="flex flex-col justify-between rounded-[24px] bg-white p-5 shadow-sm border border-slate-100">
-          <div>
-            <h3 className="text-xs font-bold uppercase tracking-wide text-slate-400">Destination</h3>
-            <p className="mt-3 text-sm font-bold text-slate-900 leading-tight">{displayDestName}</p>
-            {destinationType && (
-              <p className="mt-1 text-xs font-medium text-slate-500 capitalize">{destinationType}</p>
-            )}
-          </div>
-          <svg className="mt-2 h-6 w-6 text-slate-200 self-end" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/></svg>
-        </div>
-      </section>
-
-      {(routeSummary || backupRoutes.length > 0 || locationResolution) && (
-        <section className="rounded-[24px] bg-white p-6 shadow-sm border border-slate-100">
-          <h3 className="text-sm font-bold uppercase tracking-wide text-slate-400">Routing Intelligence</h3>
-          {routeSummary && (
-            <p className="mt-3 text-sm font-semibold text-slate-900">Primary Route: {routeSummary}</p>
-          )}
-          {backupRoutes.length > 0 && (
-            <p className="mt-2 text-xs font-medium text-slate-500">
-              Backup Routes Ready: {backupRoutes.length}
-            </p>
-          )}
-          {locationResolution && (
-            <p className="mt-2 text-xs font-medium text-slate-500">
-              Mapped from live coordinates to {locationResolution.zone_id} ({locationResolution.distance_km} km from nearest seeded zone anchor)
-            </p>
-          )}
-        </section>
-      )}
-
-      {/* SECTION 6 — SPECIAL NEEDS SUMMARY */}
-      {(criticalNeeds.length > 0 || people_count) && (
-        <section className="rounded-[24px] border border-sky-100 bg-sky-50 p-5 shadow-sm">
-           <h3 className="text-xs font-bold uppercase tracking-wide text-sky-600">Incident Details Logged</h3>
-           {people_count && (
-             <p className="mt-2 text-sm font-semibold text-sky-900">People Affected: {people_count}</p>
-           )}
-           {criticalNeeds.map((need) => (
-             <p key={need} className="mt-1 text-sm font-semibold text-sky-900">{need}</p>
-           ))}
-        </section>
-      )}
-
-      {/* SECTION 7 — VOLUNTEER SUPPORT CARD */}
-      {hasVolunteers && (
-        <section className="rounded-[24px] border border-emerald-100 bg-emerald-50 p-5 shadow-sm">
-          <div className="flex items-center gap-3">
-             <div className="flex flex-shrink-0 h-10 w-10 items-center justify-center rounded-full bg-emerald-200 text-emerald-700">
-               <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
-               </svg>
-             </div>
-             <div>
-               <h3 className="text-sm font-bold text-emerald-900">Community Volunteer Support</h3>
-               {volunteers.slice(0, 3).map((volunteer, index) => (
-                 <p key={`${volunteer.volunteer_name || 'volunteer'}-${index}`} className="mt-0.5 text-xs font-medium text-emerald-700">
-                    {(volunteer.volunteer_name || 'Volunteer responder')}
-                    {volunteer.estimated_arrival ? ` arriving in ~${volunteer.estimated_arrival}` : ''}
-                    {volunteer.rationale ? ` — ${volunteer.rationale}` : ''}
-                 </p>
-               ))}
-             </div>
-          </div>
-        </section>
-      )}
-
-      {case_events.length > 0 && (
-        <section className="rounded-[24px] bg-white p-6 shadow-sm border border-slate-100">
-          <h3 className="text-sm font-bold uppercase tracking-wide text-slate-400">SOS Event Timeline</h3>
-          <div className="mt-4 space-y-3">
-            {case_events.map((event, index) => (
-              <div key={`${event.stage_name}-${event.timestamp}-${index}`} className="rounded-[16px] bg-slate-50 p-3">
-                <p className="text-sm font-bold text-slate-900">{event.stage_name?.replaceAll('_', ' ') || 'Event'}</p>
-                <p className="mt-1 text-xs uppercase tracking-wide text-slate-500">{event.status || 'completed'}</p>
-                {event.timestamp && <p className="mt-1 text-xs text-slate-500">{new Date(event.timestamp).toLocaleString()}</p>}
+          <section className="rounded-[24px] bg-white p-6 shadow-sm border border-slate-100">
+            <h3 className="text-sm font-bold uppercase tracking-wide text-slate-400">Assigned Response</h3>
+            <div className="mt-4 flex items-center gap-4">
+              <div className="flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-full bg-blue-50 text-blue-600">
+                <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 002-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
+                </svg>
               </div>
-            ))}
-          </div>
-        </section>
-      )}
+              <div>
+                <p className="text-lg font-bold text-slate-900">{responderText}</p>
+                {hungarian.responder_type && (
+                   <p className="text-sm text-slate-500">Responder Type: {hungarian.responder_type}</p>
+                )}
+                {hungarian.rationale && (
+                  <p className="mt-1 text-xs font-medium text-slate-500">{hungarian.rationale}</p>
+                )}
+                {hasVolunteers && (
+                  <p className="mt-1 flex items-center gap-1 text-xs font-semibold text-emerald-600">
+                    <svg className="h-3.5 w-3.5" viewBox="0 0 20 20" fill="currentColor"><path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" /></svg>
+                    Volunteer Support Assigned
+                  </p>
+                )}
+              </div>
+            </div>
+            {assignmentReasons.length > 0 && (
+              <div className="mt-5 rounded-[18px] border border-indigo-100 bg-indigo-50 p-4">
+                <p className="text-xs font-bold uppercase tracking-[0.18em] text-indigo-500">Why this assignment?</p>
+                <div className="mt-3 grid gap-2">
+                  {assignmentReasons.map((reason) => (
+                    <p key={reason} className="text-sm font-semibold text-slate-700">{reason}</p>
+                  ))}
+                </div>
+              </div>
+            )}
+          </section>
+
+          <section className="grid gap-4 md:grid-cols-[minmax(0,0.8fr)_minmax(0,1.2fr)]">
+            <div className="rounded-[24px] bg-slate-900 p-6 text-white shadow-sm min-h-[220px]">
+              <h3 className="text-xs font-bold uppercase tracking-wide text-slate-400">Est Arrival</h3>
+              <p className="mt-3 text-2xl leading-tight font-black">{etaText}</p>
+              {hasAlternateRoute && (
+                <p className="mt-4 text-xs font-semibold leading-tight text-amber-300 bg-amber-400/20 p-2 rounded-lg border border-amber-400/30">
+                  Alternate safe route selected due to blocked roads
+                </p>
+              )}
+            </div>
+            
+            <div className="flex flex-col justify-between rounded-[24px] bg-white p-6 shadow-sm border border-slate-100 min-h-[220px]">
+              <div>
+                <h3 className="text-xs font-bold uppercase tracking-wide text-slate-400">Destination</h3>
+                <p className="mt-3 text-lg font-bold text-slate-900 leading-tight">{displayDestName}</p>
+                {destinationType && (
+                  <p className="mt-1 text-sm font-medium text-slate-500 capitalize">{destinationType}</p>
+                )}
+              </div>
+              <svg className="mt-2 h-8 w-8 text-slate-200 self-end" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/></svg>
+            </div>
+          </section>
+
+          {(routeSummary || backupRoutes.length > 0 || locationResolution) && (
+            <section className="rounded-[24px] bg-white p-6 shadow-sm border border-slate-100">
+              <h3 className="text-sm font-bold uppercase tracking-wide text-slate-400">Routing Intelligence</h3>
+              <div className="mt-4 grid gap-4 md:grid-cols-2">
+                <div>
+                  {routeSummary && (
+                    <p className="text-sm font-semibold text-slate-900">Primary Route: {routeSummary}</p>
+                  )}
+                  {backupRoutes.length > 0 && (
+                    <p className="mt-2 text-sm font-medium text-slate-500">
+                      Backup Routes Ready: {backupRoutes.length}
+                    </p>
+                  )}
+                </div>
+                {locationResolution && (
+                  <p className="text-sm font-medium text-slate-500">
+                    Mapped from live coordinates to {locationResolution.zone_id} ({locationResolution.distance_km} km from nearest seeded zone anchor)
+                  </p>
+                )}
+              </div>
+            </section>
+          )}
+
+          <OperationsMap incident={incident} compact />
+
+          <RouteVisualizationPanel incident={incident} />
+        </div>
+
+        <aside className="space-y-6">
+          <StatusTimeline incident={incident} compact />
+
+          {(criticalNeeds.length > 0 || people_count) && (
+            <section className="rounded-[24px] border border-sky-100 bg-sky-50 p-5 shadow-sm">
+               <h3 className="text-xs font-bold uppercase tracking-wide text-sky-600">Incident Details Logged</h3>
+               {people_count && (
+                 <p className="mt-2 text-sm font-semibold text-sky-900">People Affected: {people_count}</p>
+               )}
+               {criticalNeeds.map((need) => (
+                 <p key={need} className="mt-1 text-sm font-semibold text-sky-900">{need}</p>
+               ))}
+            </section>
+          )}
+
+          {hasVolunteers && (
+            <section className="rounded-[24px] border border-emerald-100 bg-emerald-50 p-5 shadow-sm">
+              <div className="flex items-center gap-3">
+                 <div className="flex flex-shrink-0 h-10 w-10 items-center justify-center rounded-full bg-emerald-200 text-emerald-700">
+                   <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
+                   </svg>
+                 </div>
+                 <div>
+                   <h3 className="text-sm font-bold text-emerald-900">Community Volunteer Support</h3>
+                   {volunteers.slice(0, 3).map((volunteer, index) => (
+                     <p key={`${volunteer.volunteer_name || 'volunteer'}-${index}`} className="mt-0.5 text-xs font-medium text-emerald-700">
+                        {(volunteer.volunteer_name || 'Volunteer responder')}
+                        {volunteer.estimated_arrival ? ` arriving in ~${volunteer.estimated_arrival}` : ''}
+                        {volunteer.rationale ? ` — ${volunteer.rationale}` : ''}
+                     </p>
+                   ))}
+                 </div>
+              </div>
+            </section>
+          )}
+
+          {case_events.length > 0 && (
+            <section className="rounded-[24px] bg-white p-6 shadow-sm border border-slate-100">
+              <h3 className="text-sm font-bold uppercase tracking-wide text-slate-400">SOS Event Timeline</h3>
+              <div className="mt-4 max-h-[460px] space-y-3 overflow-y-auto pr-1">
+                {case_events.map((event, index) => (
+                  <div key={`${event.stage_name}-${event.timestamp}-${index}`} className="rounded-[16px] bg-slate-50 p-3">
+                    <p className="text-sm font-bold text-slate-900">{event.stage_name?.replaceAll('_', ' ') || 'Event'}</p>
+                    <p className="mt-1 text-xs uppercase tracking-wide text-slate-500">{event.status || 'completed'}</p>
+                    {event.timestamp && <p className="mt-1 text-xs text-slate-500">{new Date(event.timestamp).toLocaleString()}</p>}
+                  </div>
+                ))}
+              </div>
+            </section>
+          )}
+        </aside>
+      </section>
+
+      <DecisionTracePanel incident={incident} />
 
       {/* SECTION 8 — ACTION CONTROLS */}
-      <section className="grid grid-cols-2 gap-3 pt-4">
+      <section className="grid grid-cols-2 gap-3 pt-2 md:grid-cols-5">
+        <Link
+          to={`/incident/${incident.sos_id || sosId}${victimId ? `?victimId=${victimId}` : ''}`}
+          className="col-span-2 flex items-center justify-center gap-2 rounded-[20px] bg-blue-600 p-4 text-white transition-colors hover:bg-blue-700 active:bg-blue-800 md:col-span-5"
+        >
+          <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" /></svg>
+          <span className="text-sm font-bold uppercase tracking-wide">Full AI Dashboard</span>
+        </Link>
         <button 
           onClick={() => fetchIncident(true)} 
           disabled={refreshing}

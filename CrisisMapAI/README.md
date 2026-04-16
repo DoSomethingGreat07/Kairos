@@ -1,6 +1,6 @@
-# CrisisMap AI
+# PulseGrid
 
-CrisisMap AI is a full-stack emergency coordination platform with explainable backend decision logic for SOS triage, routing, responder assignment, volunteer matching, supply planning, and graph-based operational visibility.
+PulseGrid is a full-stack emergency coordination platform with explainable backend decision logic for SOS triage, routing, responder assignment, volunteer matching, supply planning, and graph-based operational visibility.
 
 ## What This Repo Contains
 
@@ -9,6 +9,8 @@ CrisisMap AI is a full-stack emergency coordination platform with explainable ba
 - PostgreSQL persistence for registrations, seeded operational data, and algorithm results
 - Neo4j graph layer for zones, roads, responders, hospitals, shelters, and depots
 - Deterministic seeding + validation scripts for end-to-end demo setup
+- Voice-triggered SOS support through the backend transcription flow
+- Scoped dashboards for victims, responders, and organizations
 
 ## Backend Algorithms
 
@@ -108,6 +110,10 @@ npm run dev
   Runs the full decision pipeline and returns `algorithm_results`
 - `GET /api/incidents/{sos_id}/replay`
   Returns stored case results for replay/audit
+- `POST /api/voice/transcribe`
+  Sends captured audio through the backend voice transcription path for SOS keyword detection
+- `GET /api/dashboard`
+  Returns scoped dashboard data for organization and responder views when query params are provided
 
 Backend docs:
 
@@ -131,6 +137,7 @@ python -m pytest backend/tests/test_operational_logic.py backend/tests/test_seed
 - seed data under `data/seed/` is included intentionally for reproducible demos
 - default config values are safe local placeholders, not live credentials
 - `run.sh` now matches the current bulk-seed + validation flow
+- the repo includes CI wiring for frontend build and backend test execution
 
 ## Before You Push
 

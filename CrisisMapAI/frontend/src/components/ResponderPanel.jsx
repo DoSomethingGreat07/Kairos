@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react'
 
-import { SOCKET_BASE_URL, normalizeIncident } from '../api/client'
+import { SOCKET_BASE_URL, getProfile, getResponderIncidents, updateResponderAvailability } from '../api/client'
 
 const severityColor = (severity) => {
   const s = String(severity).toLowerCase()
@@ -13,8 +13,55 @@ const severityColor = (severity) => {
 const ResponderPanel = () => {
   const [assignments, setAssignments] = useState([])
   const [selectedAssignment, setSelectedAssignment] = useState(null)
+  const [availabilityStatus, setAvailabilityStatus] = useState('available')
+  const [availabilitySaving, setAvailabilitySaving] = useState(false)
+  const [responderId] = useState(() => {
+    try {
+      const session = JSON.parse(window.localStorage.getItem('crisismap_session') || 'null')
+      return session?.role === 'responder' ? session.subject_id : null
+    } catch {
+      return null
+    }
+  })
 
   useEffect(() => {
+    let isMounted = true
+    const refreshAssignments = async () => {
+      if (!responderId) {
+        if (isMounted) {
+          setAssignments([])
+          setSelectedAssignment(null)
+        }
+        return
+      }
+      try {
+        const data = await getResponderIncidents(responderId)
+        if (!isMounted) return
+        setAssignments(data)
+        setSelectedAssignment((current) => {
+          if (current?.id) {
+            return data.find((assignment) => assignment.id === current.id) || data[0] || null
+          }
+          return data[0] || null
+        })
+      } catch (error) {
+        console.error('Error fetching responder assignments:', error)
+      }
+    }
+
+    const loadResponderProfile = async () => {
+      if (!responderId) return
+      try {
+        const profile = await getProfile('responder', responderId)
+        setAvailabilityStatus(profile?.profile_data?.availability?.status || profile?.availability_status || profile?.status || 'available')
+      } catch (error) {
+        console.error('Error fetching responder profile:', error)
+      }
+    }
+
+    refreshAssignments()
+    loadResponderProfile()
+
     const wsUrl = SOCKET_BASE_URL.replace(/^http/, 'ws') + '/ws'
     const socket = new WebSocket(wsUrl)
 
@@ -22,18 +69,16 @@ const ResponderPanel = () => {
       try {
         const payload = JSON.parse(event.data)
         if (payload.type === 'assignment_update' || payload.type === 'incident_update') {
-          const data = normalizeIncident(payload.data)
-          setAssignments((prev) => {
-            const next = [...prev.filter((assignment) => assignment.id !== data.id), data]
-            return next.sort((a, b) => (a.priority_score || 0) < (b.priority_score || 0) ? 1 : -1)
-          })
-          setSelectedAssignment((current) => current?.id === data.id ? data : current || data)
+          refreshAssignments()
         }
       } catch (err) {}
     }
 
-    return () => socket.close()
-  }, [])
+    return () => {
+      isMounted = false
+      socket.close()
+    }
+  }, [responderId])
 
   const renderActiveAssignment = () => {
     if (!selectedAssignment) {
@@ -65,6 +110,12 @@ const ResponderPanel = () => {
     const yenRoutes = algorithm_results.yen_routes || []
     const hungarian = algorithm_results.hungarian_assignment || {}
     const volunteers = algorithm_results.gale_shapley || []
+    const assignmentReasons = [
+      hungarian.rationale || hungarian.explanation || null,
+      hungarian.responder_type ? `${hungarian.responder_type} fit selected for this incident.` : null,
+      dijkstra.destination?.reason || null,
+      eta ? `Projected scene ETA: ${eta}.` : null,
+    ].filter(Boolean).slice(0, 4)
 
     const displaySeverity = bayesian.inferred_severity || selectedAssignment.severity || 'Normal'
     const displayDisaster = disaster_type || incident_type || 'Emergency'
@@ -108,6 +159,16 @@ const ResponderPanel = () => {
               <p className="text-sm text-slate-600"><span className="font-semibold text-slate-800">Dispatch Mode:</span> <span className="capitalize">{algorithm_results.dispatch_mode || 'standard'}</span></p>
               <p className="text-sm text-slate-600"><span className="font-semibold text-slate-800">Status:</span> <span className="capitalize">{status || 'Dispatched'}</span></p>
             </div>
+            {assignmentReasons.length > 0 && (
+              <div className="mt-4 rounded-[18px] border border-indigo-100 bg-indigo-50 p-4">
+                <p className="text-xs font-bold uppercase tracking-[0.18em] text-indigo-600">Why this mission?</p>
+                <div className="mt-3 space-y-2">
+                  {assignmentReasons.map((reason) => (
+                    <p key={reason} className="text-sm font-semibold text-slate-700">{reason}</p>
+                  ))}
+                </div>
+              </div>
+            )}
           </section>
 
           <section className="rounded-[24px] bg-white p-5 border border-slate-200">
@@ -195,6 +256,42 @@ const ResponderPanel = () => {
 
   return (
     <div className="space-y-6">
+      <section className="rounded-[24px] border border-slate-200 bg-white p-5">
+        <div className="flex flex-wrap items-center justify-between gap-4">
+          <div>
+            <p className="text-xs font-bold uppercase tracking-[0.18em] text-slate-500">Availability control</p>
+            <h2 className="mt-2 text-xl font-black text-slate-950">Responder availability toggle</h2>
+          </div>
+          <div className="flex flex-wrap gap-2">
+            {['available', 'busy', 'off_duty'].map((status) => (
+              <button
+                key={status}
+                type="button"
+                disabled={availabilitySaving}
+                onClick={async () => {
+                  if (!responderId) return
+                  try {
+                    setAvailabilitySaving(true)
+                    await updateResponderAvailability(responderId, status)
+                    setAvailabilityStatus(status)
+                  } catch (error) {
+                    console.error('Unable to update responder availability:', error)
+                  } finally {
+                    setAvailabilitySaving(false)
+                  }
+                }}
+                className={`rounded-full border px-4 py-2 text-xs font-bold uppercase tracking-[0.16em] transition ${
+                  availabilityStatus === status
+                    ? 'border-indigo-300 bg-indigo-50 text-indigo-700'
+                    : 'border-slate-200 bg-slate-50 text-slate-600 hover:border-slate-300'
+                }`}
+              >
+                {status.replace('_', ' ')}
+              </button>
+            ))}
+          </div>
+        </div>
+      </section>
       <section className="grid gap-6 xl:grid-cols-[0.8fr_1.2fr]">
         
         {/* ASSIGNMENT QUEUE */}

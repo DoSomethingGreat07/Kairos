@@ -11,6 +11,7 @@ import RegistrationPage from './components/RegistrationPage'
 import LoginPage from './components/LoginPage'
 import ProfileEditorHub from './components/ProfileEditorHub'
 import RoleWorkspace from './components/RoleWorkspace'
+import IncidentDashboard from './components/IncidentDashboard'
 
 const sessionKey = 'crisismap_session'
 
@@ -103,6 +104,7 @@ function App() {
                     onClick={() => {
                       window.localStorage.removeItem(sessionKey)
                       setSession(null)
+                      window.location.href = '/'
                     }}
                   >
                     Log out
@@ -190,6 +192,7 @@ function App() {
                 )}
               />
               <Route path="/victim/:sosId" element={<VictimPanel />} />
+              <Route path="/incident/:sosId" element={<IncidentDashboard />} />
               <Route
                 path="/account"
                 element={(

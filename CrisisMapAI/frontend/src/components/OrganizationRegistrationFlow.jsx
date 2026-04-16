@@ -1,4 +1,5 @@
 import React, { useEffect, useMemo, useState } from 'react'
+import { Link } from 'react-router-dom'
 import RegistrationStepLayout from './RegistrationStepLayout'
 import ZoneMapPicker from './ZoneMapPicker'
 import { approveOrganization, getRegistrationDraft, getRegistrationZones, saveOrganizationRegistration, saveRegistrationDraft } from '../api/client'
@@ -298,6 +299,7 @@ const OrganizationRegistrationFlow = ({ onBackToRoles }) => {
           {completed.organization_code_active ? 'Organization Approved' : 'Approve for local demo'}
         </button>
         <button type="button" className="button-primary" onClick={onBackToRoles}>Return to Role Selection</button>
+        <Link to="/login" className="button-soft inline-block text-center">Go to Login</Link>
       </section>
     )
   }

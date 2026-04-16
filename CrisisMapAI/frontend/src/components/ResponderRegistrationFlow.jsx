@@ -1,4 +1,5 @@
 import React, { useEffect, useMemo, useState } from 'react'
+import { Link } from 'react-router-dom'
 import RegistrationStepLayout from './RegistrationStepLayout'
 import ZoneMapPicker from './ZoneMapPicker'
 import {
@@ -90,16 +91,15 @@ const emptyCertification = () => ({
 
 const initialState = {
   currentStep: 1,
-  draftId: '',
   organization: {
     code: '',
     name: '',
-    type: organizationTypeOptions[0],
+    type: '',
     branch_name: '',
     branch_id: '',
     official_email: '',
     contact_number: '',
-    verification_status: 'pending',
+    verification_status: '',
     verified_record: null,
   },
   personal: {
@@ -107,31 +107,33 @@ const initialState = {
     responder_id: '',
     date_of_birth: '',
     gender: '',
-    government_id_type: governmentIdTypeOptions[0],
+    government_id_type: '',
     government_id_number: '',
     profile_photo_url: '',
   },
   role: {
-    primary_role: primaryRoleOptions[0],
+    primary_role: '',
     secondary_role: '',
     response_categories: [],
-    experience_years: 0,
-    rank: 'Field Responder',
-    shift_type: shiftTypeOptions[0],
+    experience_years: '',
+    rank: '',
+    shift_type: '',
     shelter_operations_experience: '',
   },
   skills: {
     capabilities: [],
-    certifications: [emptyCertification()],
+    certifications: [
+      { certification_name: '', certification_number: '', expiry_date: '', proof_url: '' },
+    ],
     special_medical_capabilities: [],
-    languages: ['English'],
+    languages: [],
   },
   vehicle: {
     assigned: false,
     assigned_vehicle_id: '',
     vehicle_type: '',
     registration_number: '',
-    capacity: 1,
+    capacity: '',
     equipment: [],
     operational_status: 'Ready',
     driver_license_type: '',
@@ -140,10 +142,10 @@ const initialState = {
   coverage: {
     base_zone: '',
     coverage_zones: [],
-    availability: 'Available',
+    availability: '',
     shift_start: '',
     shift_end: '',
-    max_response_radius_km: 25,
+    max_response_radius_km: 10,
     outside_zone_allowed: false,
     location_sharing: false,
     preferred_disaster_types: [],
@@ -152,7 +154,7 @@ const initialState = {
     mobile: '',
     backup_contact: '',
     radio_call_sign: '',
-    preferred_contact_method: contactMethodOptions[0],
+    preferred_contact_method: '',
     emergency_contact_name: '',
     emergency_contact_number: '',
   },
@@ -162,7 +164,7 @@ const initialState = {
     certification_proof_url: '',
     driver_license_url: '',
     medical_license_url: '',
-    status: 'pending',
+    status: 'needs_review',
     background_check_completed: false,
     supervisor_approval: false,
   },
@@ -175,6 +177,7 @@ const initialState = {
     dispatch_location_consent: false,
     accurate_information_confirmation: false,
   },
+  draftId: null,
 }
 
 const ResponderRegistrationFlow = ({ onBackToRoles }) => {
@@ -422,6 +425,7 @@ const ResponderRegistrationFlow = ({ onBackToRoles }) => {
           Review status: <span className="font-bold capitalize">{formState.verification.status.replace('_', ' ')}</span>
         </div>
         <button type="button" className="button-primary" onClick={onBackToRoles}>Return to Role Selection</button>
+        <Link to="/login" className="button-soft inline-block text-center">Go to Login</Link>
       </section>
     )
   }
@@ -502,7 +506,7 @@ const ResponderRegistrationFlow = ({ onBackToRoles }) => {
                   <input className="input-shell" value={formState.personal.responder_id} onChange={(e) => updateSection('personal', 'responder_id', e.target.value)} />
                 </Field>
                 <Field label="Date of Birth" required error={showError(validationRequested, currentErrors.date_of_birth)}>
-                  <input className="input-shell" type="date" value={formState.personal.date_of_birth} onChange={(e) => updateSection('personal', 'date_of_birth', e.target.value)} />
+                  <input className="input-shell" type="date" max={new Date().toISOString().split('T')[0]} value={formState.personal.date_of_birth} onChange={(e) => updateSection('personal', 'date_of_birth', e.target.value)} />
                 </Field>
                 <Field label="Gender">
                   <select className="input-shell" value={formState.personal.gender} onChange={(e) => updateSection('personal', 'gender', e.target.value)}>
@@ -925,6 +929,7 @@ const validateStepOne = (state, flags) => {
   if (!phonePattern.test(state.organization.contact_number.trim())) errors.organization_contact_number = 'Enter a valid organization contact number.'
   if (!state.personal.full_name.trim()) errors.full_name = 'Full name is required.'
   if (!state.personal.date_of_birth) errors.date_of_birth = 'Date of birth is required.'
+  else if (new Date(state.personal.date_of_birth) > new Date()) errors.date_of_birth = 'Date of birth cannot be in the future.'
   if (!state.personal.government_id_type) errors.government_id_type = 'Government ID type is required.'
   if (!state.personal.government_id_number.trim()) errors.government_id_number = 'Government ID number is required.'
   return errors

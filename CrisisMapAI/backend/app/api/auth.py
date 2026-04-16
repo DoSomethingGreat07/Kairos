@@ -36,6 +36,10 @@ class ProfileUpdateRequest(BaseModel):
     profile_data: Dict[str, Any]
 
 
+class ResponderAvailabilityUpdateRequest(BaseModel):
+    availability_status: Literal["available", "busy", "assigned", "off_duty"]
+
+
 def _session_payload(account: Dict[str, Any]) -> Dict[str, Any]:
     return {
         "session_id": str(uuid.uuid4()),
@@ -94,4 +98,12 @@ async def update_profile(request: ProfileUpdateRequest):
     profile = repository.update_profile_data(request.role, request.subject_id, request.profile_data)
     if not profile:
         raise HTTPException(status_code=404, detail="Profile not found.")
+    return profile
+
+
+@router.patch("/profiles/responder/{subject_id}/availability")
+async def update_responder_availability(subject_id: str, request: ResponderAvailabilityUpdateRequest):
+    profile = repository.update_responder_availability(subject_id, request.availability_status)
+    if not profile:
+        raise HTTPException(status_code=404, detail="Responder profile not found.")
     return profile

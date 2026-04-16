@@ -50,7 +50,7 @@ class SOSLocation(BaseModel):
 
     @model_validator(mode="after")
     def validate_zone_details(self) -> "SOSLocation":
-        if not any([self.zone, self.custom_zone, self.landmark, self.place_name, self.street_access, self.latitude is not None, self.longitude is not None]):
+        if not any([self.zone, self.custom_zone, self.landmark, self.place_name, self.street_access, self.area_type, self.latitude is not None, self.longitude is not None]):
             raise ValueError("Provide at least one usable location detail.")
         if self.latitude is not None or self.longitude is not None:
             if self.latitude is None or self.longitude is None:
@@ -79,8 +79,10 @@ class SOSMedical(BaseModel):
     @field_validator("injured_count", "oxygen_count", "elderly_count", "children_count", "disabled_count")
     @classmethod
     def validate_counts(cls, value: Optional[int]) -> Optional[int]:
-        if value is not None and value < 1:
-            raise ValueError("Counts must be at least 1.")
+        if value is not None and value < 0:
+            raise ValueError("Counts cannot be negative.")
+        if value == 0:
+            return None
         return value
 
     @model_validator(mode="after")
@@ -94,7 +96,7 @@ class SOSMedical(BaseModel):
             self.injured_count = None
 
         if self.oxygen_required and not self.oxygen_count:
-            raise ValueError("Oxygen count must be provided when oxygen is required.")
+            self.oxygen_count = 1
         if not self.oxygen_required:
             self.oxygen_count = None
 

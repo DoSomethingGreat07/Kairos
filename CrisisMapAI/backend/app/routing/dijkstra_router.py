@@ -13,9 +13,17 @@ from ..operations.default_data import hospital_definitions, road_definitions, sh
 class DijkstraRouter:
     """Find cheapest safe routes over the road graph."""
 
-    def __init__(self, roads: Optional[List[Dict[str, Any]]] = None) -> None:
+    def __init__(
+        self,
+        roads: Optional[List[Dict[str, Any]]] = None,
+        zones: Optional[List[Dict[str, Any]]] = None,
+        hospitals: Optional[List[Dict[str, Any]]] = None,
+        shelters: Optional[List[Dict[str, Any]]] = None,
+    ) -> None:
         self.roads = roads or road_definitions()
-        self.zones = {zone["id"]: zone for zone in zone_definitions()}
+        self.zones = {zone["id"]: zone for zone in (zones or zone_definitions())}
+        self.hospitals = hospitals or hospital_definitions()
+        self.shelters = shelters or shelter_definitions()
 
     def build_graph(
         self,
@@ -136,8 +144,7 @@ class DijkstraRouter:
     def _resolve_destination(self, origin_zone: str, destination: str) -> Tuple[str, Dict[str, Any]]:
         destination_key = str(destination).lower().replace(" ", "_")
         if destination_key == "hospital":
-            hospitals = hospital_definitions()
-            target = self._nearest_facility(origin_zone, hospitals)
+            target = self._nearest_facility(origin_zone, self.hospitals)
             return target["zone_id"], {
                 "id": target["id"],
                 "name": target["name"],
@@ -147,8 +154,7 @@ class DijkstraRouter:
                 "longitude": target.get("longitude"),
             }
         if destination_key in {"shelter", "safe_zone"}:
-            shelters = shelter_definitions()
-            target = self._nearest_facility(origin_zone, shelters)
+            target = self._nearest_facility(origin_zone, self.shelters)
             return target["zone_id"], {
                 "id": target["id"],
                 "name": target["name"],

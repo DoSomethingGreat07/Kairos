@@ -27,13 +27,35 @@ export const submitSOS = async (sosData) => {
   return response.data
 }
 
-export const getIncidents = async () => {
-  const response = await apiClient.get('/api/incidents')
+export const getIncidents = async (organizationId = null) => {
+  const response = await apiClient.get('/api/incidents', {
+    params: organizationId ? { organization_id: organizationId } : {},
+  })
   return (response.data || []).map(normalizeIncident)
 }
 
-export const getDashboardData = async () => {
-  const response = await apiClient.get('/api/dashboard')
+export const getResponderIncidents = async (responderId) => {
+  const response = await apiClient.get('/api/incidents', {
+    params: { responder_id: responderId },
+  })
+  return (response.data || []).map(normalizeIncident)
+}
+
+export const getDashboardData = async (organizationId = null) => {
+  const response = await apiClient.get('/api/dashboard', {
+    params: organizationId ? { organization_id: organizationId } : {},
+  })
+  const data = response.data || {}
+  return {
+    ...data,
+    recentIncidents: (data.recentIncidents || []).map(normalizeIncident),
+  }
+}
+
+export const getResponderDashboardData = async (responderId) => {
+  const response = await apiClient.get('/api/dashboard', {
+    params: { responder_id: responderId },
+  })
   const data = response.data || {}
   return {
     ...data,
@@ -123,6 +145,13 @@ export const getProfile = async (role, subjectId) => {
 
 export const updateProfile = async (payload) => {
   const response = await apiClient.put('/api/profiles', payload)
+  return response.data
+}
+
+export const updateResponderAvailability = async (subjectId, availabilityStatus) => {
+  const response = await apiClient.patch(`/api/profiles/responder/${subjectId}/availability`, {
+    availability_status: availabilityStatus,
+  })
   return response.data
 }
 
